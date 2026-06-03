@@ -12,6 +12,30 @@ Znak `_` nahrazuje mezeru. Jiná abeceda se v projektu nepoužívá.
 
 ---
 
+## Rychlé spuštění ve Windows
+
+Nejjednodušší postup:
+
+1. Dvojklik na `install.bat`.
+2. Dvojklik na `run.bat`.
+
+Nebo v příkazovém řádku Windows (`cmd`) z kořenové složky projektu:
+
+```cmd
+install
+run
+```
+
+V PowerShellu lze případně použít `.\install.bat` a `.\run.bat`.
+
+Soubor `install.bat` vytvoří virtuální prostředí `.venv`, aktualizuje `pip` a nainstaluje projekt včetně vývojových závislostí.
+
+Soubor `run.bat` aktivuje `.venv`, vytvoří referenční matici, spustí testy a potom spustí finální dešifrování příkazem `python scripts\decrypt_samples.py --iterations 20000`. Pokud ve složce `data/ciphertexts/` zatím nejsou ciphertext soubory, je to v pořádku; skript jen vypíše informační hlášku.
+
+Pokročilé technické příkazy jsou uvedené níže.
+
+---
+
 ## Co projekt obsahuje
 
 Projekt obsahuje tyto hlavní části:
@@ -27,6 +51,9 @@ notebooks/
 
 reports/
   report.md            stručný report k projektu
+
+install.bat            rychlá instalace ve Windows
+run.bat                rychlé spuštění ve Windows
 
 scripts/
   prepare_wikisource_text.py
@@ -50,7 +77,7 @@ Starší skeleton `src/subcipher/` může v repozitáři zůstat, ale aktuální
 
 ---
 
-## Instalace
+## Pokročilá instalace
 
 Nejprve je vhodné vytvořit virtuální prostředí:
 
