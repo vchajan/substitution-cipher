@@ -1,8 +1,13 @@
 import numpy as np
 
-from substitution_cipher import ALPHABET, substitute_encrypt
+from substitution_cipher import ALPHABET, substitute_decrypt, substitute_encrypt
 from substitution_cipher.bigrams import build_reference_matrix_from_text
-from substitution_cipher.cryptanalysis import plausibility, prolom_substitute, random_key
+from substitution_cipher.cryptanalysis import (
+    plausibility,
+    polish_key,
+    prolom_substitute,
+    random_key,
+)
 from substitution_cipher.cipher import validate_key
 
 
@@ -72,3 +77,72 @@ def test_prolom_substitute_runs_and_is_reproducible_with_seed():
     assert len(best_text) == len(ciphertext)
     assert isinstance(best_score, float)
     assert result_1 == result_2
+
+
+def test_polish_key_returns_valid_key():
+    key = ALPHABET[3:] + ALPHABET[:3]
+    plaintext = "AHOJ_SVETE_AHOJ_SVETE"
+    ciphertext = substitute_encrypt(plaintext, key)
+    TM_ref = build_reference_matrix_from_text(plaintext * 3)
+
+    polished_key, _polished_text, _polished_score = polish_key(
+        ciphertext,
+        random_key(seed=11),
+        TM_ref,
+    )
+
+    validate_key(polished_key)
+
+
+def test_polish_key_returns_plaintext_with_ciphertext_length():
+    key = ALPHABET[5:] + ALPHABET[:5]
+    plaintext = "SUBSTITUCNI_SIFRA"
+    ciphertext = substitute_encrypt(plaintext, key)
+    TM_ref = build_reference_matrix_from_text(plaintext * 3)
+
+    _polished_key, polished_text, _polished_score = polish_key(
+        ciphertext,
+        random_key(seed=13),
+        TM_ref,
+    )
+
+    assert len(polished_text) == len(ciphertext)
+
+
+def test_polish_key_never_worsens_score():
+    key = ALPHABET[7:] + ALPHABET[:7]
+    plaintext = "AHOJ_SVETE_AHOJ_SVETE"
+    ciphertext = substitute_encrypt(plaintext, key)
+    TM_ref = build_reference_matrix_from_text(plaintext * 3)
+    start_key = random_key(seed=17)
+    start_text = substitute_decrypt(ciphertext, start_key)
+    start_score = plausibility(start_text, TM_ref)
+
+    _polished_key, _polished_text, polished_score = polish_key(
+        ciphertext,
+        start_key,
+        TM_ref,
+    )
+
+    assert polished_score >= start_score
+
+
+def test_prolom_substitute_with_polish_returns_expected_types():
+    key = ALPHABET[3:] + ALPHABET[:3]
+    plaintext = "AHOJ_SVETE_AHOJ_SVETE"
+    ciphertext = substitute_encrypt(plaintext, key)
+    TM_ref = build_reference_matrix_from_text(plaintext * 3)
+
+    best_key, best_text, best_score = prolom_substitute(
+        ciphertext,
+        TM_ref,
+        iter=3,
+        seed=19,
+        progress_every=0,
+        polish=True,
+    )
+
+    validate_key(best_key)
+    assert isinstance(best_key, str)
+    assert isinstance(best_text, str)
+    assert isinstance(best_score, float)

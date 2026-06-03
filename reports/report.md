@@ -80,6 +80,10 @@ Lepší kandidát se přijímá automaticky. Horší kandidát se podle pseudok�
 přijímá s pravděpodobností `0.01`. Během celého běhu se ukládá nejlepší
 nalezený klíč, nejlepší plaintext a nejlepší score.
 
+Po Metropolis-Hastings běhu je možné provést lokální dolaďování klíče. To
+systematicky vyzkouší všechny výměny dvou znaků a přijme jen takovou výměnu,
+která zlepší stejnou funkci věrohodnosti.
+
 Pro finální dešifrování zadaných souborů je připraven skript
 `scripts/decrypt_samples.py`, který implicitně používá `20 000` iterací na
 každý ciphertext.
@@ -113,7 +117,7 @@ Testy ověřují:
 Finální testovací běh:
 
 - příkaz: `pytest`,
-- výsledek: `20 passed`.
+- výsledek: `24 passed`.
 
 ## Dosažené výsledky
 

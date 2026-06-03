@@ -74,6 +74,74 @@ def _swap_two_random_characters(key: str, rng: random.Random) -> str:
     return "".join(chars)
 
 
+def polish_key(
+    ciphertext: str,
+    key: str,
+    TM_ref: np.ndarray,
+    alphabet: str = ALPHABET,
+    max_passes: int = 5,
+) -> tuple[str, str, float]:
+    """Improve a substitution key by systematic local pair swaps.
+
+    The function starts from an already found key and repeatedly tries every
+    possible swap of two key positions. If at least one swap improves the
+    plaintext plausibility, the best improving swap is accepted. The process
+    stops after ``max_passes`` passes or when no swap improves the score.
+
+    Args:
+        ciphertext: Ciphertext to decrypt.
+        key: Initial substitution key.
+        TM_ref: Smoothed relative reference bigram matrix.
+        alphabet: Alphabet used by the cipher.
+        max_passes: Maximum number of full pair-swap passes.
+
+    Returns:
+        Tuple ``(best_key, best_decrypted_text, best_score)``.
+
+    Raises:
+        ValueError: If ``key`` is invalid, ``max_passes`` is negative, or
+            ``TM_ref`` is not a valid reference matrix.
+    """
+    if max_passes < 0:
+        raise ValueError("max_passes must be non-negative.")
+
+    validate_key(key, alphabet)
+
+    best_key = key
+    best_text = substitute_decrypt(ciphertext, best_key, alphabet)
+    best_score = plausibility(best_text, TM_ref, alphabet)
+
+    for _ in range(max_passes):
+        pass_best_key = best_key
+        pass_best_text = best_text
+        pass_best_score = best_score
+
+        for first in range(len(alphabet) - 1):
+            for second in range(first + 1, len(alphabet)):
+                candidate_chars = list(best_key)
+                candidate_chars[first], candidate_chars[second] = (
+                    candidate_chars[second],
+                    candidate_chars[first],
+                )
+                candidate_key = "".join(candidate_chars)
+                candidate_text = substitute_decrypt(ciphertext, candidate_key, alphabet)
+                candidate_score = plausibility(candidate_text, TM_ref, alphabet)
+
+                if candidate_score > pass_best_score:
+                    pass_best_key = candidate_key
+                    pass_best_text = candidate_text
+                    pass_best_score = candidate_score
+
+        if pass_best_score <= best_score:
+            break
+
+        best_key = pass_best_key
+        best_text = pass_best_text
+        best_score = pass_best_score
+
+    return best_key, best_text, best_score
+
+
 def prolom_substitute(
     text: str,
     TM_ref: np.ndarray,
@@ -82,6 +150,7 @@ def prolom_substitute(
     alphabet: str = ALPHABET,
     seed: int | None = None,
     progress_every: int = 50,
+    polish: bool = True,
 ) -> tuple[str, str, float]:
     """Break a substitution cipher with a Metropolis-Hastings search.
 
@@ -99,6 +168,8 @@ def prolom_substitute(
         alphabet: Alphabet used by the cipher.
         seed: Optional seed for reproducible random choices.
         progress_every: Print progress every N iterations. Use 0 to disable.
+        polish: If true, improve the best Metropolis-Hastings key with a
+            deterministic local pair-swap search.
 
     Returns:
         Tuple ``(best_key, best_decrypted_text, best_score)``.
@@ -144,6 +215,13 @@ def prolom_substitute(
             best_score = current_score
 
         if progress_every > 0 and iteration % progress_every == 0:
-            print(f"Iteration {iteration} log plausibility: {current_score}")
+            print(
+                f"Iteration {iteration} "
+                f"current log plausibility: {current_score} "
+                f"best log plausibility: {best_score}"
+            )
+
+    if polish:
+        best_key, best_text, best_score = polish_key(text, best_key, TM_ref, alphabet)
 
     return best_key, best_text, best_score

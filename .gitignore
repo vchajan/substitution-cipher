@@ -1,36 +1,53 @@
-.venv/
+# Python cache
 __pycache__/
-*.pyc
-.ipynb_checkpoints/
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-.DS_Store
+*.py[cod]
+*.pyo
+*.pyd
 
-# veľké alebo lokálne súbory
-data/raw/*
-!data/raw/.gitkeep
-
-data/reference/*
-!data/reference/.gitkeep
-
-data/ciphertexts/*
-!data/ciphertexts/.gitkeep
-
-data/cache_wikisource/
-
-outputs/*
-!outputs/decrypted/
-outputs/decrypted/*
-!outputs/decrypted/.gitkeep
-
+# Virtual environments
 .venv/
 .venv-*/
-__pycache__/
+venv/
+env/
+
+# Test / lint / type-check cache
 .pytest_cache/
 .pytest_cache_tmp/
 .pytest_tmp/
+.mypy_cache/
+.ruff_cache/
+
+# Build / packaging
+build/
+dist/
 *.egg-info/
 
-# temporary local PDF extraction used while checking the assignment
+# Jupyter
+.ipynb_checkpoints/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Wikisource cache
+data/cache_wikisource/
+
+# Raw downloaded text can be regenerated
+data/raw/*
+!data/raw/.gitkeep
+
+# Ciphertexts are supplied by the teacher or generated locally for testing
+data/ciphertexts/*
+!data/ciphertexts/.gitkeep
+
+# Mock expected files are only for local development
+data/mock_expected/
+
+# Runtime outputs
+outputs/*
+!outputs/.gitkeep
+
+# Temporary local files
 data/processed/zadani_extracted.txt
