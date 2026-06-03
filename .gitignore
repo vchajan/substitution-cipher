@@ -17,6 +17,10 @@ data/reference/*
 data/ciphertexts/*
 !data/ciphertexts/.gitkeep
 
+data/cache_wikisource/
+
+outputs/*
+!outputs/decrypted/
 outputs/decrypted/*
 !outputs/decrypted/.gitkeep
 
@@ -24,4 +28,9 @@ outputs/decrypted/*
 .venv-*/
 __pycache__/
 .pytest_cache/
+.pytest_cache_tmp/
+.pytest_tmp/
 *.egg-info/
+
+# temporary local PDF extraction used while checking the assignment
+data/processed/zadani_extracted.txt

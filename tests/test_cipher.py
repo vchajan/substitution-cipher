@@ -1,24 +1,32 @@
 import pytest
 
-from subcipher import ALPHABET, caesar_key, random_key, substitute_decrypt, substitute_encrypt
-from subcipher.cipher import validate_key
+from substitution_cipher import ALPHABET, substitute_decrypt, substitute_encrypt
+from substitution_cipher.cipher import validate_key
 
 
-def test_caesar_encrypt_decrypt_roundtrip():
-    key = caesar_key(3)
-    plaintext = "BYL_POZDNI_VECER"
-    ciphertext = substitute_encrypt(plaintext, key)
-    assert ciphertext == "EAOCSRBGQLCYHFHU"
-    assert substitute_decrypt(ciphertext, key) == plaintext
+def test_valid_key_passes():
+    validate_key(ALPHABET)
 
 
-def test_random_key_roundtrip():
-    key = random_key(seed=42)
-    plaintext = "AHOJ_SVETE"
-    ciphertext = substitute_encrypt(plaintext, key)
-    assert substitute_decrypt(ciphertext, key) == plaintext
-
-
-def test_invalid_key_rejected():
+def test_invalid_key_raises_value_error():
     with pytest.raises(ValueError):
         validate_key(ALPHABET[:-1])
+
+    with pytest.raises(ValueError):
+        validate_key("A" * len(ALPHABET))
+
+
+def test_encrypt_decrypt_roundtrip():
+    key = ALPHABET[3:] + ALPHABET[:3]
+    plaintext = "BYL_POZDNI_VECER_PRVNI_MAJ"
+    ciphertext = substitute_encrypt(plaintext, key)
+
+    assert ciphertext == "EAOCSRBGQLCYHFHUCSUYQLCPDM"
+    assert substitute_decrypt(ciphertext, key) == plaintext
+
+
+def test_characters_outside_alphabet_are_left_unchanged():
+    key = ALPHABET[1:] + ALPHABET[:1]
+
+    assert substitute_encrypt("AHOJ!", key).endswith("!")
+    assert substitute_decrypt("BIPK!", key).endswith("!")

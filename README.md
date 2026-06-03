@@ -1,171 +1,180 @@
-# Substitution Cipher Cryptanalysis
+# Substitution Cipher
 
-Tímový skeleton pre školský projekt: Python knižnica na šifrovanie, dešifrovanie a kryptoanalýzu klasickej substitučnej šifry.
+Python project for a school assignment: classical substitution cipher,
+bigram transition matrix, and Metropolis-Hastings cryptanalysis.
 
-Projekt používa presne túto abecedu:
+The library uses exactly this alphabet:
 
 ```text
 ABCDEFGHIJKLMNOPQRSTUVWXYZ_
 ```
 
-Podtržítko `_` reprezentuje medzeru. Iná abeceda sa v projekte nepoužíva.
+The `_` character represents a space.
 
----
+## Project Structure
 
-## Rýchly štart
+```text
+data/
+  raw/                 raw downloaded reference text
+  processed/           clean_text.txt and TM_ref.npy
+  ciphertexts/         ciphertext files from the teacher
+notebooks/
+  demo.ipynb           demonstration notebook
+outputs/               exported plaintext/key files
+reports/
+  report.md            short project report
+scripts/
+  prepare_wikisource_text.py
+  build_reference_matrix.py
+  decrypt_samples.py
+src/
+  substitution_cipher/ main package for the assignment
+tests/                 automated tests
+```
 
-Vytvorenie virtuálneho prostredia:
+The repository also contains the older `src/subcipher/` skeleton. The current
+assignment-facing implementation is in `src/substitution_cipher/`.
 
-```bash
+## Installation
+
+```powershell
 python -m venv .venv
-```
-
-Windows:
-
-```bash
 .venv\Scripts\activate
-```
-
-Mac/Linux:
-
-```bash
-source .venv/bin/activate
-```
-
-Inštalácia projektu:
-
-```bash
 pip install -e ".[dev]"
 ```
 
-Spustenie testov:
+Minimal dependencies are standard library plus NumPy for the core logic.
+Matplotlib is used in the notebook for visualization.
 
-```bash
+## Prepare Reference Text
+
+The reference text is downloaded from Czech Wikisource. The script uses only
+Python standard library networking and HTML parsing.
+
+```powershell
+python scripts\prepare_wikisource_text.py
+```
+
+Outputs:
+
+```text
+data/raw/raw_text.txt
+data/processed/clean_text.txt
+```
+
+The cleaned text contains only `A-Z` and `_`.
+
+## Build Reference Matrix
+
+```powershell
+python scripts\build_reference_matrix.py
+```
+
+Output:
+
+```text
+data/processed/TM_ref.npy
+```
+
+The matrix is built from absolute bigram counts. Zero cells are replaced by
+`1`, then the matrix is normalized so its total sum is `1`.
+
+Current validated values:
+
+```text
+Text length: 434711
+Bigram count: 434710
+Matrix shape: (27, 27)
+Matrix sum: 1.000000000000
+```
+
+## Run Tests
+
+```powershell
 pytest
 ```
 
----
+If a local Windows installation still has a locked pytest temp directory, this
+fallback also works:
 
-## Štruktúra projektu
+```powershell
+pytest --basetemp="$env:TEMP\substitution_cipher_pytest_tmp" -o cache_dir="$env:TEMP\substitution_cipher_pytest_cache"
+```
+
+The project tests themselves avoid pytest `tmp_path`, so ordinary `pytest`
+should work in a clean environment.
+
+## Run Notebook
+
+```powershell
+jupyter notebook notebooks\demo.ipynb
+```
+
+The notebook demonstrates:
+
+- importing the library,
+- the project alphabet,
+- encryption and decryption,
+- loading or building `TM_ref.npy`,
+- checking matrix shape and sum,
+- visualizing the bigram matrix with Matplotlib,
+- a short cryptanalysis example,
+- exporting plaintext and key files.
+
+The notebook uses a small iteration count for speed. For final assignment
+decryptions use 20,000 iterations per ciphertext.
+
+## Decrypt Teacher Samples
+
+Put ciphertext files into:
 
 ```text
-.
-├── src/subcipher/          # zdrojový kód knižnice
-├── tests/                  # automatické testy
-├── scripts/                # spúšťacie skripty pre maticu a lúštenie
-├── notebooks/              # Jupyter Notebook pre finálnu demonštráciu
-├── docs/                   # dokumentácia, tímový plán a report
-├── data/                   # vstupné dáta
-├── outputs/                # exportované výsledky
-└── .github/                # GitHub workflow, issue a PR šablóny
+data/ciphertexts/
 ```
 
----
-
-## Kde čo dopĺňať
-
-### Knižnica
-
-Zdrojový kód je v:
+Expected filename format:
 
 ```text
-src/subcipher/
+text_{length}_sample_{id}_ciphertext.txt
 ```
 
-Najdôležitejšie súbory:
+Run:
+
+```powershell
+python scripts\decrypt_samples.py
+```
+
+By default the script reads `data/processed/TM_ref.npy`, runs
+`prolom_substitute(..., iter=20000)`, and writes exports to `outputs/`.
+
+For a shorter test run:
+
+```powershell
+python scripts\decrypt_samples.py --iterations 200 --seed 42
+```
+
+If the input directory is missing or empty, the script prints a clear message
+and exits without failing.
+
+## Exported Files
+
+Plaintext and key are written separately:
 
 ```text
-alphabet.py      # definícia abecedy a generovanie kľúčov
-cipher.py        # šifrovanie, dešifrovanie, validácia kľúča
-preprocess.py    # normalizácia textu
-bigrams.py       # bigramy a prechodové matice
-cracker.py       # Metropolis-Hastings algoritmus
-io_utils.py      # export plaintext/key súborov
+text_{delka_textu}_sample_{id textu}_plaintext.txt
+text_{delka_textu}_sample_{id textu}_key.txt
 ```
 
-### Dáta
+Each file contains only the plaintext or only the key.
 
-```text
-data/raw/          # referenčný český text, napr. kniha z Wikisource
-data/reference/    # uložená referenčná bigramová matica
-data/ciphertexts/  # zašifrované texty od vyučujúceho
-```
+## Basic Library Usage
 
-### Výstupy
+```python
+from substitution_cipher import ALPHABET, substitute_decrypt, substitute_encrypt
 
-Dešifrované texty a kľúče ukladajte do:
+key = ALPHABET[3:] + ALPHABET[:3]
+plaintext = "BYL_POZDNI_VECER"
 
-```text
-outputs/decrypted/
-```
-
-Povinný názov exportu:
-
-```text
-text_{dlzka_textu}_sample_{id}_plaintext.txt
-text_{dlzka_textu}_sample_{id}_key.txt
-```
-
-Príklad:
-
-```text
-text_1000_sample_20_plaintext.txt
-text_1000_sample_20_key.txt
-```
-
-### Dokumentácia
-
-Dokumentácia je v:
-
-```text
-docs/
-```
-
-Odporúčané súbory:
-
-```text
-docs/assignment_requirements.md  # stručný prepis požiadaviek
-docs/architecture.md             # architektúra projektu
-docs/api_contract.md             # verejné funkcie a ich vstupy/výstupy
-docs/team_plan.md                # rozdelenie práce v skupine
-docs/report_template.md          # šablóna finálneho reportu
-```
-
-### Notebook
-
-Finálnu demonštráciu pripravujte v:
-
-```text
-notebooks/demo.ipynb
-```
-
-Notebook má ukázať:
-
-1. šifrovanie,
-2. dešifrovanie,
-3. vytvorenie bigramovej matice,
-4. kryptoanalýzu,
-5. export výsledkov,
-6. stručné vyhodnotenie úspešnosti.
-
----
-
-## Základné spustenie
-
-Vytvorenie referenčnej bigramovej matice:
-
-```bash
-python scripts/build_reference.py data/raw/krakatit.txt data/reference/TM_ref.csv
-```
-
-Lúštenie jedného súboru:
-
-```bash
-python scripts/crack_file.py data/ciphertexts/text_1000_sample_20_ciphertext.txt data/reference/TM_ref.csv outputs/decrypted --iterations 20000
-```
-
-Lúštenie všetkých `*_ciphertext.txt` súborov v priečinku:
-
-```bash
-python scripts/crack_batch.py data/ciphertexts data/reference/TM_ref.csv outputs/decrypted --iterations 20000
+ciphertext = substitute_encrypt(plaintext, key)
+decrypted = substitute_decrypt(ciphertext, key)
 ```
