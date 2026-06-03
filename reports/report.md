@@ -1,123 +1,123 @@
-# Report: substitucni sifra a kryptoanalyza
+# Report: substituční šifra a kryptoanalýza
 
-## Cil prace
+## Cíl práce
 
-Cilem projektu je vytvorit Python knihovnu pro klasickou substitucni sifru,
-postavit referencni bigramovou matici z ceskeho textu a pouzit ji pri
-automatickem prolomeni substitucni sifry pomoci Metropolis-Hastings algoritmu.
+Cílem projektu je vytvořit Python knihovnu pro klasickou substituční šifru,
+postavit referenční bigramovou matici z českého textu a použít ji při
+automatickém prolomení substituční šifry pomocí Metropolis-Hastings algoritmu.
 
-## Substitucni sifra
+## Substituční šifra
 
-Projekt pouziva abecedu:
+Projekt používá abecedu:
 
 ```text
 ABCDEFGHIJKLMNOPQRSTUVWXYZ_
 ```
 
-Znak `_` reprezentuje mezeru. Klic je permutace cele abecedy, tedy kazdy znak
-abecedy se v nem vyskytuje prave jednou. Sifrovani mapuje znaky z abecedy na
-odpovidajici znaky klice. Desifrovani pouziva inverzni mapovani z klice zpet na
+Znak `_` reprezentuje mezeru. Klíč je permutace celé abecedy, tedy každý znak
+abecedy se v něm vyskytuje právě jednou. Šifrování mapuje znaky z abecedy na
+odpovídající znaky klíče. Dešifrování používá inverzní mapování z klíče zpět na
 abecedu.
 
-## Priprava referencniho textu
+## Příprava referenčního textu
 
-Referencni text je ziskan z Wikisource, konkretne z knihy Krakatit. Skript
-`scripts/prepare_wikisource_text.py` pouziva standardni knihovny Pythonu,
+Referenční text je získán z Wikisource, konkrétně z knihy Krakatit. Skript
+`scripts/prepare_wikisource_text.py` používá standardní knihovny Pythonu,
 `urllib` a `html.parser`, bez knihoven `requests` nebo BeautifulSoup.
 
-Text se cisti takto:
+Text se čistí takto:
 
-- odstrani se diakritika,
-- text se prevede na velka pismena,
-- interpunkce, cisla a nepovolene znaky se berou jako oddelovace,
-- mezery a radky se prevedou na `_`,
-- opakovane `_` se slouci.
+- odstraní se diakritika,
+- text se převede na velká písmena,
+- interpunkce, čísla a nepovolené znaky se berou jako oddělovače,
+- mezery a řádky se převedou na `_`,
+- opakované `_` se sloučí.
 
-Vysledny text obsahuje pouze znaky `A-Z` a `_`.
+Výsledný text obsahuje pouze znaky `A-Z` a `_`.
 
-Aktualni referencni data:
+Aktuální referenční data:
 
-- delka clean textu: `434711`,
-- pocet bigramu: `434710`.
+- délka clean textu: `434711`,
+- počet bigramů: `434710`.
 
-## Bigramy a prechodova matice
+## Bigramy a přechodová matice
 
-Bigram je dvojice po sobe jdoucich znaku. Z cisteho textu se nejprve vytvori
-seznam bigramu a pote absolutni matice cetnosti o rozmeru `27 x 27`.
+Bigram je dvojice po sobě jdoucích znaků. Z čistého textu se nejprve vytvoří
+seznam bigramů a poté absolutní matice četností o rozměru `27 x 27`.
 
-Po spocitani absolutnich cetnosti se nulove bunky nahradi hodnotou `1`, aby
-později nevznikal problem `log(0)`. Teprve potom se matice normalizuje na
-relativni pravdepodobnosti.
+Po spočítání absolutních četností se nulové buňky nahradí hodnotou `1`, aby
+později nevznikal problém `log(0)`. Teprve potom se matice normalizuje na
+relativní pravděpodobnosti.
 
-Aktualni referencni matice:
+Aktuální referenční matice:
 
 - tvar matice: `(27, 27)`,
-- soucet matice: `1.000000000000`,
-- format ulozeni: `data/processed/TM_ref.npy`.
+- součet matice: `1.000000000000`,
+- formát uložení: `data/processed/TM_ref.npy`.
 
 ## Plausibility
 
-Funkce `plausibility` pocita logaritmickou verohodnost textu podle referencni
-bigramove matice. Referencni matice je relativni a bez nul, pozorovana matice
-bigramu je absolutni.
+Funkce `plausibility` počítá logaritmickou věrohodnost textu podle referenční
+bigramové matice. Referenční matice je relativní a bez nul, pozorovaná matice
+bigramů je absolutní.
 
-Pouzity vypocet odpovida vzorci:
+Použitý výpočet odpovídá vzorci:
 
 ```python
 likelihood += log(TM_ref[i, j]) * TM_obs[i, j]
 ```
 
-Logaritmicky prostor je dulezity, protoze prime nasobeni mnoha malych
-pravdepodobnosti by vedlo k podteceni.
+Logaritmický prostor je důležitý, protože přímé násobení mnoha malých
+pravděpodobností by vedlo k podtečení.
 
 ## Metropolis-Hastings algoritmus
 
-Algoritmus zacina nahodnym klicem nebo uzivatelem zadanym `start_key`. V kazde
-iteraci vznikne kandidat prohozenim dvou nahodne vybranych znaku v klici.
-Kandidat se pouzije k desifrovani a vypocte se jeho plausibility.
+Algoritmus začíná náhodným klíčem nebo uživatelem zadaným `start_key`. V každé
+iteraci vznikne kandidát prohozením dvou náhodně vybraných znaků v klíči.
+Kandidát se použije k dešifrování a vypočte se jeho plausibility.
 
-Lepsi kandidat se prijima automaticky. Horsi kandidat se podle pseudokodu z PDF
-prijima s pravdepodobnosti `0.01`. Behem celeho behu se uklada nejlepsi
-nalezeny klic, nejlepsi plaintext a nejlepsi score.
+Lepší kandidát se přijímá automaticky. Horší kandidát se podle pseudokódu z PDF
+přijímá s pravděpodobností `0.01`. Během celého běhu se ukládá nejlepší
+nalezený klíč, nejlepší plaintext a nejlepší score.
 
-Pro finalni desifrovani zadanych souboru je pripraven skript
-`scripts/decrypt_samples.py`, ktery implicitne pouziva `20 000` iteraci na
-kazdy ciphertext.
+Pro finální dešifrování zadaných souborů je připraven skript
+`scripts/decrypt_samples.py`, který implicitně používá `20 000` iterací na
+každý ciphertext.
 
-## Export vysledku
+## Export výsledků
 
-Plaintext a klic se ukladaji do samostatnych souboru:
+Plaintext a klíč se ukládají do samostatných souborů:
 
 ```text
-text_{delka_textu}_sample_{id textu}_plaintext.txt
-text_{delka_textu}_sample_{id textu}_key.txt
+text_{délka_textu}_sample_{id textu}_plaintext.txt
+text_{délka_textu}_sample_{id textu}_key.txt
 ```
 
-V souborech je pouze samotny plaintext nebo samotny klic, bez dalsiho popisu.
+V souborech je pouze samotný plaintext nebo samotný klíč, bez dalšího popisu.
 
-## Testovani a validace
+## Testování a validace
 
-Testy overuji:
+Testy ověřují:
 
-- validaci klice a round-trip sifrovani/desifrovani,
-- chovani pro znaky mimo abecedu,
-- cisteni textu,
-- tvorbu bigramu,
-- absolutni, vyhlazenou i relativni prechodovou matici,
+- validaci klíče a round-trip šifrování/dešifrování,
+- chování pro znaky mimo abecedu,
+- čištění textu,
+- tvorbu bigramů,
+- absolutní, vyhlazenou i relativní přechodovou matici,
 - logaritmickou plausibility,
-- nahodny klic,
-- zakladni beh Metropolis-Hastings algoritmu,
-- export plaintextu a klice,
-- bezpecne chovani skriptu pro prazdnou slozku ciphertextu.
+- náhodný klíč,
+- základní běh Metropolis-Hastings algoritmu,
+- export plaintextu a klíče,
+- bezpečné chování skriptu pro prázdnou složku ciphertextů.
 
-Finalni testovaci beh:
+Finální testovací běh:
 
-- prikaz: `pytest`,
-- vysledek: `20 passed`.
+- příkaz: `pytest`,
+- výsledek: `20 passed`.
 
-## Dosazene vysledky
+## Dosažené výsledky
 
-Projekt ma pripravenou knihovnu, referencni text, referencni matici,
-demonstracni notebook, report a skript pro zpracovani realnych ciphertextu.
-Realne vysledky prolomeni lze doplnit po pridani souboru od vyucujiciho do
+Projekt má připravenou knihovnu, referenční text, referenční matici,
+demonstrační notebook, report a skript pro zpracování reálných ciphertextů.
+Reálné výsledky prolomení lze doplnit po přidání souborů od vyučujícího do
 `data/ciphertexts/`.

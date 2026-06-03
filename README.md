@@ -1,41 +1,41 @@
-# Substitution Cipher
+# Substituční šifra
 
-Python project for a school assignment: classical substitution cipher,
-bigram transition matrix, and Metropolis-Hastings cryptanalysis.
+Python projekt pro školní zadání: klasická substituční šifra, bigramová
+přechodová matice a kryptoanalýza pomocí Metropolis-Hastings algoritmu.
 
-The library uses exactly this alphabet:
+Knihovna používá přesně tuto abecedu:
 
 ```text
 ABCDEFGHIJKLMNOPQRSTUVWXYZ_
 ```
 
-The `_` character represents a space.
+Znak `_` reprezentuje mezeru.
 
-## Project Structure
+## Struktura projektu
 
 ```text
 data/
-  raw/                 raw downloaded reference text
-  processed/           clean_text.txt and TM_ref.npy
-  ciphertexts/         ciphertext files from the teacher
+  raw/                 stažený referenční text
+  processed/           clean_text.txt a TM_ref.npy
+  ciphertexts/         ciphertext soubory od vyučujícího
 notebooks/
-  demo.ipynb           demonstration notebook
-outputs/               exported plaintext/key files
+  demo.ipynb           demonstrační notebook
+outputs/               exportované plaintext/key soubory
 reports/
-  report.md            short project report
+  report.md            stručný report k projektu
 scripts/
   prepare_wikisource_text.py
   build_reference_matrix.py
   decrypt_samples.py
 src/
-  substitution_cipher/ main package for the assignment
-tests/                 automated tests
+  substitution_cipher/ hlavní balíček podle zadání
+tests/                 automatické testy
 ```
 
-The repository also contains the older `src/subcipher/` skeleton. The current
-assignment-facing implementation is in `src/substitution_cipher/`.
+V repozitáři zůstává i starší skeleton `src/subcipher/`. Aktuální implementace
+pro zadání je v `src/substitution_cipher/`.
 
-## Installation
+## Instalace
 
 ```powershell
 python -m venv .venv
@@ -43,43 +43,43 @@ python -m venv .venv
 pip install -e ".[dev]"
 ```
 
-Minimal dependencies are standard library plus NumPy for the core logic.
-Matplotlib is used in the notebook for visualization.
+Hlavní logika používá standardní knihovnu Pythonu a NumPy. Matplotlib se používá
+v notebooku pro vizualizaci.
 
-## Prepare Reference Text
+## Příprava referenčního textu
 
-The reference text is downloaded from Czech Wikisource. The script uses only
-Python standard library networking and HTML parsing.
+Referenční text se stahuje z české Wikisource. Skript používá pouze standardní
+knihovny Pythonu pro síťové požadavky a jednoduché zpracování HTML.
 
 ```powershell
 python scripts\prepare_wikisource_text.py
 ```
 
-Outputs:
+Výstupy:
 
 ```text
 data/raw/raw_text.txt
 data/processed/clean_text.txt
 ```
 
-The cleaned text contains only `A-Z` and `_`.
+Vyčištěný text obsahuje pouze znaky `A-Z` a `_`.
 
-## Build Reference Matrix
+## Vytvoření referenční matice
 
 ```powershell
 python scripts\build_reference_matrix.py
 ```
 
-Output:
+Výstup:
 
 ```text
 data/processed/TM_ref.npy
 ```
 
-The matrix is built from absolute bigram counts. Zero cells are replaced by
-`1`, then the matrix is normalized so its total sum is `1`.
+Matice se vytváří z absolutních četností bigramů. Nulové buňky se nahradí
+hodnotou `1` a potom se matice normalizuje tak, aby její součet byl `1`.
 
-Current validated values:
+Aktuálně ověřené hodnoty:
 
 ```text
 Text length: 434711
@@ -88,86 +88,95 @@ Matrix shape: (27, 27)
 Matrix sum: 1.000000000000
 ```
 
-## Run Tests
+## Spuštění testů
 
 ```powershell
 pytest
 ```
 
-If a local Windows installation still has a locked pytest temp directory, this
-fallback also works:
+Pokud by konkrétní instalace Windows měla zamčený dočasný adresář pytestu, lze
+použít i tento náhradní příkaz:
 
 ```powershell
 pytest --basetemp="$env:TEMP\substitution_cipher_pytest_tmp" -o cache_dir="$env:TEMP\substitution_cipher_pytest_cache"
 ```
 
-The project tests themselves avoid pytest `tmp_path`, so ordinary `pytest`
-should work in a clean environment.
+Testy projektu samy nepoužívají `tmp_path`, takže běžné `pytest` by mělo v
+čistém prostředí fungovat.
 
-## Run Notebook
+## Spuštění notebooku
 
 ```powershell
 jupyter notebook notebooks\demo.ipynb
 ```
 
-The notebook demonstrates:
+Notebook ukazuje:
 
-- importing the library,
-- the project alphabet,
-- encryption and decryption,
-- loading or building `TM_ref.npy`,
-- checking matrix shape and sum,
-- visualizing the bigram matrix with Matplotlib,
-- a short cryptanalysis example,
-- exporting plaintext and key files.
+- import knihovny,
+- použitou abecedu,
+- šifrování a dešifrování,
+- načtení nebo vytvoření `TM_ref.npy`,
+- kontrolu tvaru a součtu matice,
+- vizualizaci bigramové matice pomocí Matplotlib,
+- krátkou ukázku kryptoanalýzy,
+- export plaintextu a klíče.
 
-The notebook uses a small iteration count for speed. For final assignment
-decryptions use 20,000 iterations per ciphertext.
+V notebooku je kvůli rychlosti použito méně iterací. Pro finální dešifrování
+souborů ze zadání se používá 20 000 iterací na jeden ciphertext.
 
-## Decrypt Teacher Samples
+Export notebooku do HTML:
 
-Put ciphertext files into:
+```powershell
+jupyter nbconvert --to html notebooks\demo.ipynb
+```
+
+Pokud `jupyter` nebo `nbconvert` nejsou nainstalované, export se provede až po
+jejich instalaci.
+
+## Dešifrování vzorků od vyučujícího
+
+Ciphertext soubory vložte do:
 
 ```text
 data/ciphertexts/
 ```
 
-Expected filename format:
+Očekávaný formát názvu:
 
 ```text
 text_{length}_sample_{id}_ciphertext.txt
 ```
 
-Run:
+Spuštění:
 
 ```powershell
-python scripts\decrypt_samples.py
+python scripts\decrypt_samples.py --iterations 20000
 ```
 
-By default the script reads `data/processed/TM_ref.npy`, runs
-`prolom_substitute(..., iter=20000)`, and writes exports to `outputs/`.
+Skript implicitně načte `data/processed/TM_ref.npy`, pro každý ciphertext spustí
+`prolom_substitute(..., iter=20000)` a uloží výstupy do `outputs/`.
 
-For a shorter test run:
+Pro krátkou kontrolu bez reálného dešifrování lze použít:
 
 ```powershell
-python scripts\decrypt_samples.py --iterations 200 --seed 42
+python scripts\decrypt_samples.py --iterations 1 --seed 1
 ```
 
-If the input directory is missing or empty, the script prints a clear message
-and exits without failing.
+Pokud vstupní složka chybí nebo je prázdná, skript pouze vypíše jasnou hlášku a
+nespadne. Falešné plaintext/key výstupy nevytváří.
 
-## Exported Files
+## Exportované soubory
 
-Plaintext and key are written separately:
+Plaintext a klíč se ukládají samostatně:
 
 ```text
-text_{delka_textu}_sample_{id textu}_plaintext.txt
-text_{delka_textu}_sample_{id textu}_key.txt
+text_{délka_textu}_sample_{id textu}_plaintext.txt
+text_{délka_textu}_sample_{id textu}_key.txt
 ```
 
-Each file contains only the plaintext or only the key.
+Každý soubor obsahuje pouze samotný plaintext nebo samotný klíč.
 
-## Basic Library Usage
+## Základní použití knihovny
 
 ```python
 from substitution_cipher import ALPHABET, substitute_decrypt, substitute_encrypt
@@ -177,4 +186,55 @@ plaintext = "BYL_POZDNI_VECER"
 
 ciphertext = substitute_encrypt(plaintext, key)
 decrypted = substitute_decrypt(ciphertext, key)
+```
+
+## Finální odevzdání
+
+1. Připravit referenční text:
+
+```powershell
+python scripts\prepare_wikisource_text.py
+```
+
+2. Vytvořit referenční matici:
+
+```powershell
+python scripts\build_reference_matrix.py
+```
+
+3. Spustit testy:
+
+```powershell
+pytest
+```
+
+4. Exportovat notebook do HTML:
+
+```powershell
+jupyter nbconvert --to html notebooks\demo.ipynb
+```
+
+5. Po dodání ciphertextů od vyučujícího je vložit do:
+
+```text
+data/ciphertexts/
+```
+
+6. Spustit finální dešifrování:
+
+```powershell
+python scripts\decrypt_samples.py --iterations 20000
+```
+
+7. Výstupy budou v:
+
+```text
+outputs/
+```
+
+ve formátu:
+
+```text
+text_{délka_textu}_sample_{id textu}_plaintext.txt
+text_{délka_textu}_sample_{id textu}_key.txt
 ```
