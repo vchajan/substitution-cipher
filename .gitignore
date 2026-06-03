@@ -1,0 +1,27 @@
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.DS_Store
+
+# veľké alebo lokálne súbory
+data/raw/*
+!data/raw/.gitkeep
+
+data/reference/*
+!data/reference/.gitkeep
+
+data/ciphertexts/*
+!data/ciphertexts/.gitkeep
+
+outputs/decrypted/*
+!outputs/decrypted/.gitkeep
+
+.venv/
+.venv-*/
+__pycache__/
+.pytest_cache/
+*.egg-info/

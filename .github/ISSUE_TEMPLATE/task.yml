@@ -1,0 +1,31 @@
+name: Tímová úloha
+description: Úloha pre člena tímu
+labels: [task]
+body:
+  - type: input
+    id: title
+    attributes:
+      label: Názov úlohy
+      placeholder: Implementovať transition_matrix
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Popis
+      description: Čo presne treba spraviť?
+    validations:
+      required: true
+  - type: textarea
+    id: files
+    attributes:
+      label: Dotknuté súbory
+      placeholder: src/subcipher/bigrams.py, tests/test_bigrams.py
+  - type: checkboxes
+    id: done
+    attributes:
+      label: Hotovo znamená
+      options:
+        - label: Kód je implementovaný
+        - label: Testy prechádzajú
+        - label: Dokumentácia je aktualizovaná
