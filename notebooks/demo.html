@@ -7796,17 +7796,18 @@ a.anchor-link {
 <!-- End of mermaid configuration --></head>
 <body class="jp-Notebook" data-jp-theme-light="true" data-jp-theme-name="JupyterLab Light">
 <main>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=d918f2e3">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=cell-01">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h1 id="Demo:-substitu%C4%8Dn%C3%AD-%C5%A1ifra-a-kryptoanal%C3%BDza">Demo: substituční šifra a kryptoanalýza<a class="anchor-link" href="#Demo:-substitu%C4%8Dn%C3%AD-%C5%A1ifra-a-kryptoanal%C3%BDza">¶</a></h1><p>Notebook ukazuje základní postup podle zadání: šifrování, dešifrování, referenční bigramovou matici, krátkou ukázku Metropolis-Hastings algoritmu a export výsledků. Pro finální dešifrování zadaných souborů se podle PDF používá 20 000 iterací na text.</p>
+<h1 id="Demo:-substitu?n?-?ifra-a-kryptoanal?za">Demo: substitu?n? ?ifra a kryptoanal?za<a class="anchor-link" href="#Demo:-substitu?n?-?ifra-a-kryptoanal?za">¶</a></h1><p>C?lem projektu je uk?zat klasickou substitu?n? ?ifru nad abecedou <code>ABCDEFGHIJKLMNOPQRSTUVWXYZ_</code>, vytvo?en? referen?n? bigramov? matice z ?esk?ch text? a prolomen? ciphertextu pomoc? Metropolis-Hastings algoritmu.</p>
+<p>Fin?ln? dlouh? b?h se spou?t? skriptem <code>scripts/decrypt_samples.py --iterations 20000</code>. Notebook slou?? jako p?ehledn? demonstrace a vyhodnocen?, proto v n?m nejsou extr?mn? dlouh? v?po?ty.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=313a5668">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=cell-02">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7815,43 +7816,54 @@ a.anchor-link {
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 
-<span class="n">PROJECT_ROOT</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span> <span class="k">if</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">'notebooks'</span> <span class="k">else</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span>
+<span class="n">PROJECT_ROOT</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">PROJECT_ROOT</span> <span class="o">/</span> <span class="s1">'src'</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+    <span class="n">PROJECT_ROOT</span> <span class="o">=</span> <span class="n">PROJECT_ROOT</span><span class="o">.</span><span class="n">parent</span>
+
 <span class="n">SRC_DIR</span> <span class="o">=</span> <span class="n">PROJECT_ROOT</span> <span class="o">/</span> <span class="s1">'src'</span>
 <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">SRC_DIR</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="p">:</span>
     <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">SRC_DIR</span><span class="p">))</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">substitution_cipher</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-    <span class="n">ALPHABET</span><span class="p">,</span>
-    <span class="n">build_reference_matrix_from_text</span><span class="p">,</span>
-    <span class="n">export_result</span><span class="p">,</span>
-    <span class="n">get_bigrams</span><span class="p">,</span>
-    <span class="n">plausibility</span><span class="p">,</span>
-    <span class="n">prolom_substitute</span><span class="p">,</span>
-    <span class="n">substitute_decrypt</span><span class="p">,</span>
-    <span class="n">substitute_encrypt</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">substitution_cipher.bigrams</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_matrix</span><span class="p">,</span> <span class="n">save_matrix</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">substitution_cipher</span><span class="w"> </span><span class="kn">import</span> <span class="n">ALPHABET</span><span class="p">,</span> <span class="n">substitute_encrypt</span><span class="p">,</span> <span class="n">substitute_decrypt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">substitution_cipher.bigrams</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_bigrams</span><span class="p">,</span> <span class="n">load_matrix</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">substitution_cipher.cryptanalysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">plausibility</span><span class="p">,</span> <span class="n">prolom_substitute</span>
 
-<span class="n">ALPHABET</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">ALPHABET</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">PROJECT_ROOT</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">ALPHABET</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=c5ee421e">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=cell-03">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="%C5%A0ifrov%C3%A1n%C3%AD-a-de%C5%A1ifrov%C3%A1n%C3%AD">Šifrování a dešifrování<a class="anchor-link" href="#%C5%A0ifrov%C3%A1n%C3%AD-a-de%C5%A1ifrov%C3%A1n%C3%AD">¶</a></h2>
+<h2 id="Pou?it?-abeceda">Pou?it? abeceda<a class="anchor-link" href="#Pou?it?-abeceda">¶</a></h2><p>Projekt pou??v? p?esn? tuto abecedu:</p>
+<div class="highlight"><pre><span></span>ABCDEFGHIJKLMNOPQRSTUVWXYZ_
+</pre></div>
+<p>Znak <code>_</code> reprezentuje mezeru. Referen?n? texty i ciphertexty se validuj? tak, aby obsahovaly pouze tyto znaky.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=d6dcf3b1">
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=cell-04">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="?ifrov?n?-a-de?ifrov?n?">?ifrov?n? a de?ifrov?n?<a class="anchor-link" href="#?ifrov?n?-a-de?ifrov?n?">¶</a></h2><p>Kl?? je permutace cel? abecedy. ?ifrov?n? mapuje p?vodn? abecedu na kl??, de?ifrov?n? pou??v? inverzn? mapov?n?.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=cell-05">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7859,29 +7871,38 @@ a.anchor-link {
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">plaintext</span> <span class="o">=</span> <span class="s1">'BYL_POZDNI_VECER_PRVNI_MAJ'</span>
-<span class="n">key</span> <span class="o">=</span> <span class="n">ALPHABET</span><span class="p">[</span><span class="mi">3</span><span class="p">:]</span> <span class="o">+</span> <span class="n">ALPHABET</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">key</span> <span class="o">=</span> <span class="n">ALPHABET</span><span class="p">[</span><span class="mi">3</span><span class="p">:]</span> <span class="o">+</span> <span class="n">ALPHABET</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span>
+<span class="n">plaintext</span> <span class="o">=</span> <span class="s1">'BYL_POZDNI_VECER_PRVNI_MAJ'</span>
+
 <span class="n">ciphertext</span> <span class="o">=</span> <span class="n">substitute_encrypt</span><span class="p">(</span><span class="n">plaintext</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
 <span class="n">decrypted</span> <span class="o">=</span> <span class="n">substitute_decrypt</span><span class="p">(</span><span class="n">ciphertext</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
 
-<span class="n">plaintext</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">ciphertext</span><span class="p">,</span> <span class="n">decrypted</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Plaintext :'</span><span class="p">,</span> <span class="n">plaintext</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Ciphertext:'</span><span class="p">,</span> <span class="n">ciphertext</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Decrypted :'</span><span class="p">,</span> <span class="n">decrypted</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Round-trip OK:'</span><span class="p">,</span> <span class="n">decrypted</span> <span class="o">==</span> <span class="n">plaintext</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=cdd6db48">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=cell-06">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Referen%C4%8Dn%C3%AD-bigramov%C3%A1-matice">Referenční bigramová matice<a class="anchor-link" href="#Referen%C4%8Dn%C3%AD-bigramov%C3%A1-matice">¶</a></h2>
+<h2 id="Referen?n?-texty">Referen?n? texty<a class="anchor-link" href="#Referen?n?-texty">¶</a></h2><p>Pro jazykov? model ?e?tiny jsou pou?ity dva texty Karla ?apka:</p>
+<ul>
+<li>Krakatit: <code>data/processed/clean_text.txt</code></li>
+<li>V?lka s mloky: <code>data/reference_texts/valka_s_mloky_clean.txt</code></li>
+</ul>
+<p>Skript <code>scripts/build_combined_reference_matrix.py</code> spoj? dostupn? texty p?es jeden znak <code>_</code>, ulo?? <code>data/processed/combined_clean_text.txt</code> a vytvo?? <code>data/processed/TM_ref.npy</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=87922339">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=cell-07">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7889,36 +7910,52 @@ a.anchor-link {
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">clean_text_path</span> <span class="o">=</span> <span class="n">PROJECT_ROOT</span> <span class="o">/</span> <span class="s1">'data'</span> <span class="o">/</span> <span class="s1">'processed'</span> <span class="o">/</span> <span class="s1">'clean_text.txt'</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">combined_text_path</span> <span class="o">=</span> <span class="n">PROJECT_ROOT</span> <span class="o">/</span> <span class="s1">'data'</span> <span class="o">/</span> <span class="s1">'processed'</span> <span class="o">/</span> <span class="s1">'combined_clean_text.txt'</span>
 <span class="n">matrix_path</span> <span class="o">=</span> <span class="n">PROJECT_ROOT</span> <span class="o">/</span> <span class="s1">'data'</span> <span class="o">/</span> <span class="s1">'processed'</span> <span class="o">/</span> <span class="s1">'TM_ref.npy'</span>
 
-<span class="n">clean_text</span> <span class="o">=</span> <span class="n">clean_text_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s1">'utf-8'</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-<span class="n">bigrams</span> <span class="o">=</span> <span class="n">get_bigrams</span><span class="p">(</span><span class="n">clean_text</span><span class="p">)</span>
+<span class="n">combined_text</span> <span class="o">=</span> <span class="n">combined_text_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s1">'utf-8'</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+<span class="n">TM_ref</span> <span class="o">=</span> <span class="n">load_matrix</span><span class="p">(</span><span class="n">matrix_path</span><span class="p">)</span>
 
-<span class="k">if</span> <span class="n">matrix_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-    <span class="n">TM_ref</span> <span class="o">=</span> <span class="n">load_matrix</span><span class="p">(</span><span class="n">matrix_path</span><span class="p">)</span>
-<span class="k">else</span><span class="p">:</span>
-    <span class="n">TM_ref</span> <span class="o">=</span> <span class="n">build_reference_matrix_from_text</span><span class="p">(</span><span class="n">clean_text</span><span class="p">)</span>
-    <span class="n">save_matrix</span><span class="p">(</span><span class="n">TM_ref</span><span class="p">,</span> <span class="n">matrix_path</span><span class="p">)</span>
-
-<span class="nb">len</span><span class="p">(</span><span class="n">clean_text</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">bigrams</span><span class="p">),</span> <span class="n">TM_ref</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">TM_ref</span><span class="o">.</span><span class="n">sum</span><span class="p">()),</span> <span class="nb">float</span><span class="p">(</span><span class="n">TM_ref</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'D?lka spojen?ho textu:'</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">combined_text</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Po?et bigram?:'</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">get_bigrams</span><span class="p">(</span><span class="n">combined_text</span><span class="p">)))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Shape matice:'</span><span class="p">,</span> <span class="n">TM_ref</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Suma matice:'</span><span class="p">,</span> <span class="n">TM_ref</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Obsahuje nuly:'</span><span class="p">,</span> <span class="nb">bool</span><span class="p">((</span><span class="n">TM_ref</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">()))</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=ebb5da6b">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=cell-08">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Vizualizace-matice">Vizualizace matice<a class="anchor-link" href="#Vizualizace-matice">¶</a></h2>
+<h2 id="Kontrola-matice">Kontrola matice<a class="anchor-link" href="#Kontrola-matice">¶</a></h2><p>Fin?ln? kontrola po sestaven? kombinovan? matice:</p>
+<ul>
+<li>shape: <code>(27, 27)</code></li>
+<li>suma: <code>1.000000000000</code></li>
+<li>obsahuje nuly: <code>False</code></li>
+<li>d?lka spojen?ho referen?n?ho textu: <code>816372</code></li>
+<li>po?et bigram?: <code>816371</code></li>
+</ul>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=a3b910c2">
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=cell-09">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="Vizualizace-bigramov?-matice">Vizualizace bigramov? matice<a class="anchor-link" href="#Vizualizace-bigramov?-matice">¶</a></h2><p>N?sleduj?c? obr?zek ukazuje logaritmovan? hodnoty referen?n? bigramov? matice. Logaritmus je pou?it proto, aby byly rozd?ly v ?etnostech viditeln?j??.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=cell-10">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7927,13 +7964,14 @@ a.anchor-link {
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">7</span><span class="p">))</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">TM_ref</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">'viridis'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">TM_ref</span><span class="p">),</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">'viridis'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">'log pravd?podobnosti'</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ALPHABET</span><span class="p">)),</span> <span class="nb">list</span><span class="p">(</span><span class="n">ALPHABET</span><span class="p">),</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">90</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">yticks</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ALPHABET</span><span class="p">)),</span> <span class="nb">list</span><span class="p">(</span><span class="n">ALPHABET</span><span class="p">))</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">'pravdepodobnost'</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">'Referencni bigramova matice'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">'Referen?n? bigramov? matice'</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
@@ -7942,17 +7980,17 @@ a.anchor-link {
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=87effb55">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=cell-11">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Kr%C3%A1tk%C3%A1-uk%C3%A1zka-kryptoanal%C3%BDzy">Krátká ukázka kryptoanalýzy<a class="anchor-link" href="#Kr%C3%A1tk%C3%A1-uk%C3%A1zka-kryptoanal%C3%BDzy">¶</a></h2><p>Tato ukázka používá málo iterací, aby byl notebook rychlý. Pro finální soubory od vyučujícího spouští připravený skript <code>scripts/decrypt_samples.py</code> implicitně 20 000 iterací.</p>
+<h2 id="Kr?tk?-uk?zka-kryptoanal?zy">Kr?tk? uk?zka kryptoanal?zy<a class="anchor-link" href="#Kr?tk?-uk?zka-kryptoanal?zy">¶</a></h2><p>Uk?zka pou??v? u?itelsk? soubor <code>text_1000_sample_1_ciphertext.txt</code>. Aby notebook z?stal rychl?, b??? zde pouze kr?tk? demonstra?n? po?et iterac?. Fin?ln? v?sledky v <code>outputs/</code> vznikly skriptem s <code>20 000</code> iteracemi.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=b76f4ce5">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=cell-12">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7960,36 +7998,37 @@ a.anchor-link {
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">demo_plaintext</span> <span class="o">=</span> <span class="s1">'AHOJ_SVETE_AHOJ_SVETE'</span>
-<span class="n">demo_key</span> <span class="o">=</span> <span class="n">ALPHABET</span><span class="p">[</span><span class="mi">5</span><span class="p">:]</span> <span class="o">+</span> <span class="n">ALPHABET</span><span class="p">[:</span><span class="mi">5</span><span class="p">]</span>
-<span class="n">demo_ciphertext</span> <span class="o">=</span> <span class="n">substitute_encrypt</span><span class="p">(</span><span class="n">demo_plaintext</span><span class="p">,</span> <span class="n">demo_key</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">sample_ciphertext_path</span> <span class="o">=</span> <span class="n">PROJECT_ROOT</span> <span class="o">/</span> <span class="s1">'data'</span> <span class="o">/</span> <span class="s1">'ciphertexts'</span> <span class="o">/</span> <span class="s1">'text_1000_sample_1_ciphertext.txt'</span>
+<span class="n">sample_ciphertext</span> <span class="o">=</span> <span class="n">sample_ciphertext_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s1">'utf-8'</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
 
-<span class="n">best_key</span><span class="p">,</span> <span class="n">best_text</span><span class="p">,</span> <span class="n">best_score</span> <span class="o">=</span> <span class="n">prolom_substitute</span><span class="p">(</span>
-    <span class="n">demo_ciphertext</span><span class="p">,</span>
+<span class="n">demo_key</span><span class="p">,</span> <span class="n">demo_plaintext</span><span class="p">,</span> <span class="n">demo_score</span> <span class="o">=</span> <span class="n">prolom_substitute</span><span class="p">(</span>
+    <span class="n">sample_ciphertext</span><span class="p">,</span>
     <span class="n">TM_ref</span><span class="p">,</span>
-    <span class="nb">iter</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
-    <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
+    <span class="nb">iter</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>
+    <span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
     <span class="n">progress_every</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
 <span class="p">)</span>
 
-<span class="n">demo_ciphertext</span><span class="p">,</span> <span class="n">best_key</span><span class="p">,</span> <span class="n">best_text</span><span class="p">,</span> <span class="n">best_score</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'D?lka ciphertextu:'</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">sample_ciphertext</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Demo sk?re:'</span><span class="p">,</span> <span class="n">demo_score</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Uk?zka plaintextu:'</span><span class="p">,</span> <span class="n">demo_plaintext</span><span class="p">[:</span><span class="mi">120</span><span class="p">])</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=4f5ffc3e">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=cell-13">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Export-v%C3%BDsledk%C5%AF">Export výsledků<a class="anchor-link" href="#Export-v%C3%BDsledk%C5%AF">¶</a></h2>
+<h2 id="Porovn?n?-s-u?itelsk?m-p??kladem">Porovn?n? s u?itelsk?m p??kladem<a class="anchor-link" href="#Porovn?n?-s-u?itelsk?m-p??kladem">¶</a></h2><p>U?itelsk? p??klad pro <code>text_1000_sample_1</code> je ulo?en ve slo?ce <code>data/teacher_example/</code>. Fin?ln? v?stup ze skriptu je v <code>outputs/</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=aef8e1ed">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=cell-14">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7997,28 +8036,101 @@ a.anchor-link {
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">plaintext_path</span><span class="p">,</span> <span class="n">key_path</span> <span class="o">=</span> <span class="n">export_result</span><span class="p">(</span>
-    <span class="n">plaintext</span><span class="o">=</span><span class="n">best_text</span><span class="p">,</span>
-    <span class="n">key</span><span class="o">=</span><span class="n">best_key</span><span class="p">,</span>
-    <span class="n">text_length</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">demo_ciphertext</span><span class="p">),</span>
-    <span class="n">sample_id</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-    <span class="n">output_dir</span><span class="o">=</span><span class="n">PROJECT_ROOT</span> <span class="o">/</span> <span class="s1">'outputs'</span> <span class="o">/</span> <span class="s1">'demo'</span><span class="p">,</span>
-<span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">teacher_plaintext</span> <span class="o">=</span> <span class="p">(</span><span class="n">PROJECT_ROOT</span> <span class="o">/</span> <span class="s1">'data'</span> <span class="o">/</span> <span class="s1">'teacher_example'</span> <span class="o">/</span> <span class="s1">'text_1000_sample_1_plaintext.txt'</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s1">'utf-8'</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+<span class="n">teacher_key</span> <span class="o">=</span> <span class="p">(</span><span class="n">PROJECT_ROOT</span> <span class="o">/</span> <span class="s1">'data'</span> <span class="o">/</span> <span class="s1">'teacher_example'</span> <span class="o">/</span> <span class="s1">'text_1000_sample_1_key.txt'</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s1">'utf-8'</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+<span class="n">output_plaintext</span> <span class="o">=</span> <span class="p">(</span><span class="n">PROJECT_ROOT</span> <span class="o">/</span> <span class="s1">'outputs'</span> <span class="o">/</span> <span class="s1">'text_1000_sample_1_plaintext.txt'</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s1">'utf-8'</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+<span class="n">output_key</span> <span class="o">=</span> <span class="p">(</span><span class="n">PROJECT_ROOT</span> <span class="o">/</span> <span class="s1">'outputs'</span> <span class="o">/</span> <span class="s1">'text_1000_sample_1_key.txt'</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s1">'utf-8'</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
 
-<span class="n">plaintext_path</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">key_path</span><span class="o">.</span><span class="n">name</span>
+<span class="n">matching_chars</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">output_plaintext</span><span class="p">,</span> <span class="n">teacher_plaintext</span><span class="p">)</span> <span class="k">if</span> <span class="n">a</span> <span class="o">==</span> <span class="n">b</span><span class="p">)</span>
+<span class="n">matching_percent</span> <span class="o">=</span> <span class="n">matching_chars</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">teacher_plaintext</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Plaintext p?esn? sed?:'</span><span class="p">,</span> <span class="n">output_plaintext</span> <span class="o">==</span> <span class="n">teacher_plaintext</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Spr?vn? znaky:'</span><span class="p">,</span> <span class="n">matching_chars</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Procento shody:'</span><span class="p">,</span> <span class="n">matching_percent</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Key p?esn? sed?:'</span><span class="p">,</span> <span class="n">output_key</span> <span class="o">==</span> <span class="n">teacher_key</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Nalezen? key je validn? d?lky:'</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">output_key</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">ALPHABET</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=6c50d534">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=cell-15">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Vyhodnocen%C3%AD">Vyhodnocení<a class="anchor-link" href="#Vyhodnocen%C3%AD">¶</a></h2><p>Referenční matice má tvar 27 x 27, je vyhlazena proti nulám a je normalizována na součet 1. Metropolis-Hastings prohledává prostor klíčů přes náhodné prohození dvou znaků v klíči. U reálných zadaných ciphertextů je vhodné spouštět více běhů a použít alespoň 20 000 iterací na text, jak požaduje PDF zadání.</p>
+<h2 id="Souhrn-vyhodnocen?">Souhrn vyhodnocen?<a class="anchor-link" href="#Souhrn-vyhodnocen?">¶</a></h2><p>Skript <code>scripts/evaluate_outputs.py</code> vytvo?il soubory:</p>
+<ul>
+<li><code>reports/evaluation_summary.md</code></li>
+<li><code>reports/evaluation_summary.csv</code></li>
+</ul>
+<p>Tabulka obsahuje d?lku textu, sample ID, n?zvy v?stupn?ch soubor?, validitu kl??e, plausibility sk?re a porovn?n? s u?itelsk?m p??kladem tam, kde je zn?m? plaintext.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=cell-16">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">evaluation_csv</span> <span class="o">=</span> <span class="n">PROJECT_ROOT</span> <span class="o">/</span> <span class="s1">'reports'</span> <span class="o">/</span> <span class="s1">'evaluation_summary.csv'</span>
+<span class="k">with</span> <span class="n">evaluation_csv</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s1">'utf-8'</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s1">''</span><span class="p">)</span> <span class="k">as</span> <span class="n">handle</span><span class="p">:</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">csv</span><span class="o">.</span><span class="n">DictReader</span><span class="p">(</span><span class="n">handle</span><span class="p">))</span>
+
+<span class="n">teacher_row</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">row</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span> <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="s1">'length'</span><span class="p">]</span> <span class="o">==</span> <span class="s1">'1000'</span> <span class="ow">and</span> <span class="n">row</span><span class="p">[</span><span class="s1">'sample_id'</span><span class="p">]</span> <span class="o">==</span> <span class="s1">'1'</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Po?et vyhodnocen?ch v?stup?:'</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Teacher sample row:'</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">teacher_row</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'  </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=cell-17">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="Uk?zka-exportovan?ch-soubor?">Uk?zka exportovan?ch soubor?<a class="anchor-link" href="#Uk?zka-exportovan?ch-soubor?">¶</a></h2><p>V?stupy jsou ukl?d?ny samostatn? jako plaintext a key soubor. N?zvy dodr?uj? form?t po?adovan? v zad?n?.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=cell-18">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">((</span><span class="n">PROJECT_ROOT</span> <span class="o">/</span> <span class="s1">'outputs'</span><span class="p">)</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s1">'text_1000_sample_1_*.txt'</span><span class="p">)):</span>
+    <span class="n">content</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s1">'utf-8'</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s1">'-&gt; d?lka'</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">content</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">content</span><span class="p">[:</span><span class="mi">120</span><span class="p">])</span>
+    <span class="nb">print</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=cell-19">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="Z?v?r">Z?v?r<a class="anchor-link" href="#Z?v?r">¶</a></h2><p>Projekt ?sp??n? zpracoval v?ech <code>60</code> u?itelsk?ch ciphertext?. Fin?ln? b?h pou??v? <code>20 000</code> iterac? na ka?d? ciphertext a v?sledky ukl?d? do slo?ky <code>outputs/</code>.</p>
+<p>Pro u?itelsk? sample <code>text_1000_sample_1</code> fin?ln? plaintext sed? p?esn?: <code>1000 / 1000</code> znak?, tedy <code>100 %</code>. Key soubor je validn? permutace abecedy; nen? textov? toto?n? s u?itelsk?m key souborem, proto?e n?kolik znak? se v tomto konkr?tn?m ciphertextu nevyskytuje a nejsou z n?j jednozna?n? ur?iteln?.</p>
 </div>
 </div>
 </div>

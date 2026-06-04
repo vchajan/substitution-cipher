@@ -14,8 +14,18 @@ echo Activating virtual environment...
 call ".venv\Scripts\activate.bat"
 if errorlevel 1 goto error
 
-echo Building reference matrix...
-python scripts\build_reference_matrix.py
+echo Validating assignment files...
+python scripts\validate_assignment_files.py
+if errorlevel 1 goto error
+
+if exist "scripts\build_combined_reference_matrix.py" (
+    echo Building combined reference matrix...
+    python scripts\build_combined_reference_matrix.py
+) else (
+    echo Combined reference matrix script was not found.
+    echo Falling back to build_reference_matrix.py...
+    python scripts\build_reference_matrix.py
+)
 if errorlevel 1 goto error
 
 echo Running tests...
@@ -24,6 +34,10 @@ if errorlevel 1 goto error
 
 echo Running final decryption with 20000 iterations...
 python scripts\decrypt_samples.py --iterations 20000
+if errorlevel 1 goto error
+
+echo Evaluating outputs...
+python scripts\evaluate_outputs.py
 if errorlevel 1 goto error
 
 echo.

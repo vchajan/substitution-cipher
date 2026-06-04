@@ -3,10 +3,8 @@
 ## Cíl práce
 
 Cílem projektu je vytvořit Python knihovnu pro klasickou substituční šifru,
-postavit referenční bigramovou matici z českého textu a použít ji při
-automatickém prolomení substituční šifry pomocí Metropolis-Hastings algoritmu.
-
-## Substituční šifra
+připravit referenční bigramovou matici z českého textu a použít ji k
+automatickému prolomení šifry pomocí Metropolis-Hastings algoritmu.
 
 Projekt používá abecedu:
 
@@ -14,114 +12,194 @@ Projekt používá abecedu:
 ABCDEFGHIJKLMNOPQRSTUVWXYZ_
 ```
 
-Znak `_` reprezentuje mezeru. Klíč je permutace celé abecedy, tedy každý znak
-abecedy se v něm vyskytuje právě jednou. Šifrování mapuje znaky z abecedy na
-odpovídající znaky klíče. Dešifrování používá inverzní mapování z klíče zpět na
-abecedu.
+Znak `_` reprezentuje mezeru.
 
-## Příprava referenčního textu
+## Princip substituční šifry
 
-Referenční text je získán z Wikisource, konkrétně z knihy Krakatit. Skript
-`scripts/prepare_wikisource_text.py` používá standardní knihovny Pythonu,
-`urllib` a `html.parser`, bez knihoven `requests` nebo BeautifulSoup.
+Klíč je permutace celé abecedy. Při šifrování se každý znak původní abecedy
+mapuje na znak na stejné pozici v klíči. Při dešifrování se používá inverzní
+mapování z klíče zpět na původní abecedu.
 
-Text se čistí takto:
+Hlavní funkce knihovny jsou `substitute_encrypt` a `substitute_decrypt`.
 
-- odstraní se diakritika,
-- text se převede na velká písmena,
-- interpunkce, čísla a nepovolené znaky se berou jako oddělovače,
-- mezery a řádky se převedou na `_`,
-- opakované `_` se sloučí.
+## Příprava referenčních textů
 
-Výsledný text obsahuje pouze znaky `A-Z` a `_`.
+Původní referenční text je vyčištěný román **Krakatit**, uložený v:
 
-Aktuální referenční data:
+```text
+data/processed/clean_text.txt
+```
 
-- délka clean textu: `434711`,
-- počet bigramů: `434710`.
+Druhý referenční text je **Válka s mloky**, uložený ve složce:
+
+```text
+data/reference_texts/
+```
+
+Použité soubory:
+
+```text
+data/reference_texts/valka_s_mloky_raw.txt
+data/reference_texts/valka_s_mloky_clean.txt
+```
+
+Čištění textu probíhá takto:
+
+- odstranění diakritiky,
+- převod na velká písmena,
+- odstranění interpunkce, číslic a nepovolených znaků,
+- převod mezer na `_`,
+- sloučení opakovaných `_`.
+
+Výsledný clean text obsahuje pouze znaky `A-Z` a `_`.
 
 ## Bigramy a přechodová matice
 
-Bigram je dvojice po sobě jdoucích znaků. Z čistého textu se nejprve vytvoří
-seznam bigramů a poté absolutní matice četností o rozměru `27 x 27`.
+Bigram je dvojice po sobě jdoucích znaků. Z vyčištěného textu se nejprve vytvoří
+seznam bigramů a z něj absolutní matice četností o rozměru `27 x 27`.
 
-Po spočítání absolutních četností se nulové buňky nahradí hodnotou `1`, aby
-později nevznikal problém `log(0)`. Teprve potom se matice normalizuje na
-relativní pravděpodobnosti.
+Postup vytvoření referenční matice:
 
-Aktuální referenční matice:
+- nejprve se počítají absolutní četnosti bigramů,
+- nulové hodnoty se nahradí hodnotou `1`,
+- matice se převede na relativní pravděpodobnosti.
 
+Finální matice byla vytvořena skriptem:
+
+```powershell
+python scripts\build_combined_reference_matrix.py
+```
+
+Aktuální hodnoty:
+
+- počet použitých referenčních textů: `2`,
+- délka Krakatitu: `434711`,
+- délka Války s mloky: `381660`,
+- délka spojeného textu: `816372`,
+- počet bigramů: `816371`,
 - tvar matice: `(27, 27)`,
 - součet matice: `1.000000000000`,
-- formát uložení: `data/processed/TM_ref.npy`.
+- matice obsahuje nuly: `False`.
 
 ## Plausibility
 
-Funkce `plausibility` počítá logaritmickou věrohodnost textu podle referenční
-bigramové matice. Referenční matice je relativní a bez nul, pozorovaná matice
-bigramů je absolutní.
-
-Použitý výpočet odpovídá vzorci:
-
-```python
-likelihood += log(TM_ref[i, j]) * TM_obs[i, j]
-```
-
-Logaritmický prostor je důležitý, protože přímé násobení mnoha malých
-pravděpodobností by vedlo k podtečení.
+Funkce `plausibility` počítá logaritmickou věrohodnost kandidátního plaintextu
+podle referenční bigramové matice. Pozorované bigramy plaintextu se počítají
+jako absolutní četnosti a násobí se logaritmy pravděpodobností v referenční
+matici.
 
 ## Metropolis-Hastings algoritmus
 
-Algoritmus začíná náhodným klíčem nebo uživatelem zadaným `start_key`. V každé
-iteraci vznikne kandidát prohozením dvou náhodně vybraných znaků v klíči.
-Kandidát se použije k dešifrování a vypočte se jeho plausibility.
+Algoritmus začíná náhodným klíčem nebo zadaným `start_key`. V každé iteraci
+vznikne kandidát prohozením dvou náhodně vybraných znaků v klíči.
 
-Lepší kandidát se přijímá automaticky. Horší kandidát se podle pseudokódu z PDF
-přijímá s pravděpodobností `0.01`. Během celého běhu se ukládá nejlepší
-nalezený klíč, nejlepší plaintext a nejlepší score.
+Pravidla přijetí:
 
-Po Metropolis-Hastings běhu je možné provést lokální dolaďování klíče. To
-systematicky vyzkouší všechny výměny dvou znaků a přijme jen takovou výměnu,
-která zlepší stejnou funkci věrohodnosti.
+- lepší kandidát se přijme vždy,
+- horší kandidát se přijme s pravděpodobností `0.01`,
+- během běhu se uchovává nejlepší nalezený klíč, plaintext a skóre.
 
-Pro finální dešifrování zadaných souborů je připraven skript
-`scripts/decrypt_samples.py`, který implicitně používá `20 000` iterací na
-každý ciphertext.
+Po skončení M-H běhu lze volitelně použít `polish_key`. Tato funkce bez znalosti
+plaintextu systematicky vyzkouší všechny výměny dvou znaků v klíči a přijme jen
+takovou výměnu, která zlepší stejnou funkci věrohodnosti.
 
-## Export výsledků
+## Zpracování učitelských souborů
 
-Plaintext a klíč se ukládají do samostatných souborů:
+Učitelské ciphertexty jsou uloženy v:
+
+```text
+data/ciphertexts/
+```
+
+Očekávaný formát názvů je:
+
+```text
+text_{length}_sample_{sample_id}_ciphertext.txt
+```
+
+Použité délky jsou `250`, `500` a `1000`, pro každou délku existují sample ID
+`1` až `20`. Celkem tedy projekt zpracovává `60` ciphertextů.
+
+Finální dešifrování bylo spuštěno příkazem:
+
+```powershell
+python scripts\decrypt_samples.py --iterations 20000
+```
+
+Výstupy jsou v:
+
+```text
+outputs/
+```
+
+Každý výstup má dva soubory:
 
 ```text
 text_{délka_textu}_sample_{id textu}_plaintext.txt
 text_{délka_textu}_sample_{id textu}_key.txt
 ```
 
-V souborech je pouze samotný plaintext nebo samotný klíč, bez dalšího popisu.
+## Výsledky
+
+Aktuální validace souborů:
+
+- počet vstupních ciphertextů: `60`,
+- počet exportovaných plaintext souborů: `60`,
+- počet exportovaných key souborů: `60`,
+- učitelský plaintext/key příklad je přítomen: ano,
+- validační skript skončil se stavem: `OK`.
+
+Vyhodnocení vůči učitelskému příkladu `text_1000_sample_1`:
+
+- plaintext přesně sedí: `True`,
+- správné znaky: `1000`,
+- procento shody plaintextu: `100.000000`,
+- nalezený key je validní permutace: `True`,
+- key přesně sedí s učitelským souborem: `False`.
+
+Rozdíl key souboru nebrání dešifrování daného textu: nalezený klíč i učitelský
+klíč dávají pro `text_1000_sample_1_ciphertext.txt` stejný plaintext. Rozdíl je
+v několika znacích klíče, které se v tomto konkrétním ciphertextu nevyskytují,
+proto nejsou z plaintextu jednoznačně určitelné.
+
+Detailní tabulky jsou uloženy v:
+
+```text
+reports/evaluation_summary.md
+reports/evaluation_summary.csv
+```
 
 ## Testování a validace
 
 Testy ověřují:
 
-- validaci klíče a round-trip šifrování/dešifrování,
-- chování pro znaky mimo abecedu,
-- čištění textu,
-- tvorbu bigramů,
-- absolutní, vyhlazenou i relativní přechodovou matici,
-- logaritmickou plausibility,
-- náhodný klíč,
-- základní běh Metropolis-Hastings algoritmu,
-- export plaintextu a klíče,
-- bezpečné chování skriptu pro prázdnou složku ciphertextů.
+- validaci klíče,
+- šifrování a dešifrování,
+- bigramy a přechodovou matici,
+- výpočet plausibility,
+- běh Metropolis-Hastings algoritmu,
+- lokální doladění `polish_key`,
+- export výsledků,
+- bezpečné chování skriptu `decrypt_samples.py`,
+- kombinovanou referenční matici,
+- validaci zadávacích souborů,
+- vyhodnocení výstupů.
 
 Finální testovací běh:
 
 - příkaz: `pytest`,
-- výsledek: `24 passed`.
+- výsledek: `29 passed`.
 
-## Dosažené výsledky
+Další kontroly:
 
-Projekt má připravenou knihovnu, referenční text, referenční matici,
-demonstrační notebook, report a skript pro zpracování reálných ciphertextů.
-Reálné výsledky prolomení lze doplnit po přidání souborů od vyučujícího do
-`data/ciphertexts/`.
+- `python scripts\validate_assignment_files.py`: `OK`,
+- `python scripts\build_combined_reference_matrix.py`: matice `(27, 27)`, součet `1.0`, bez nul,
+- `python scripts\evaluate_outputs.py`: vytvořeno Markdown i CSV vyhodnocení.
+
+## Závěr
+
+Projekt obsahuje knihovnu pro substituční šifru, kombinovaný český referenční
+korpus, referenční bigramovou matici, skripty pro validaci, dešifrování i
+vyhodnocení, notebook, HTML export notebooku a report. Finální běh zpracoval
+všech `60` učitelských ciphertextů s `20 000` iteracemi na soubor a vytvořil
+požadované plaintext/key výstupy.

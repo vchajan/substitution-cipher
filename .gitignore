@@ -38,16 +38,8 @@ data/cache_wikisource/
 data/raw/*
 !data/raw/.gitkeep
 
-# Ciphertexts are supplied by the teacher or generated locally for testing
-data/ciphertexts/*
-!data/ciphertexts/.gitkeep
-
 # Mock expected files are only for local development
 data/mock_expected/
-
-# Runtime outputs
-outputs/*
-!outputs/.gitkeep
 
 # Temporary local files
 data/processed/zadani_extracted.txt
