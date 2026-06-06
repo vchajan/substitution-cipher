@@ -6,28 +6,44 @@ import random
 
 import numpy as np
 
-from .bigrams import get_bigrams, transition_matrix
+from .bigrams import absolute_bigram_matrix, get_bigrams
 from .cipher import substitute_decrypt, validate_key
 from .config import ALPHABET
 
 
-def random_key(alphabet: str = ALPHABET, seed: int | None = None) -> str:
-    """Return a random permutation of ``alphabet``.
+def random_key(seed: int | None = None) -> str:
+    """Return a random permutation of the assignment alphabet.
 
     Args:
-        alphabet: Alphabet to permute.
         seed: Optional seed for reproducible key generation.
 
     Returns:
         A string containing each alphabet character exactly once.
     """
     rng = random.Random(seed)
-    chars = list(alphabet)
+    chars = list(ALPHABET)
     rng.shuffle(chars)
     return "".join(chars)
 
 
-def plausibility(text: str, TM_ref: np.ndarray, alphabet: str = ALPHABET) -> float:
+def _validate_reference_matrix(TM_ref: np.ndarray) -> np.ndarray:
+    """Return ``TM_ref`` as an array after validating its basic properties."""
+    reference = np.asarray(TM_ref, dtype=float)
+    expected_shape = (len(ALPHABET), len(ALPHABET))
+
+    if reference.shape != expected_shape:
+        raise ValueError(f"TM_ref must have shape {expected_shape}.")
+
+    if not np.all(np.isfinite(reference)):
+        raise ValueError("TM_ref must contain only finite values.")
+
+    if np.any(reference <= 0.0):
+        raise ValueError("TM_ref must not contain zero or negative values.")
+
+    return reference
+
+
+def plausibility(text: str, TM_ref: np.ndarray) -> float:
     """Compute log-likelihood of ``text`` under a reference bigram matrix.
 
     ``TM_ref`` must be a relative transition matrix without zero values.
@@ -38,7 +54,6 @@ def plausibility(text: str, TM_ref: np.ndarray, alphabet: str = ALPHABET) -> flo
     Args:
         text: Candidate plaintext.
         TM_ref: Smoothed relative reference bigram matrix.
-        alphabet: Alphabet used for rows and columns.
 
     Returns:
         Log-likelihood score as a float.
@@ -47,22 +62,8 @@ def plausibility(text: str, TM_ref: np.ndarray, alphabet: str = ALPHABET) -> flo
         ValueError: If ``TM_ref`` has a wrong shape or contains non-positive
             values.
     """
-    reference = np.asarray(TM_ref, dtype=float)
-    expected_shape = (len(alphabet), len(alphabet))
-
-    if reference.shape != expected_shape:
-        raise ValueError(f"TM_ref must have shape {expected_shape}.")
-
-    if np.any(reference <= 0.0):
-        raise ValueError("TM_ref must not contain zero or negative values.")
-
-    observed = transition_matrix(
-        get_bigrams(text),
-        alphabet=alphabet,
-        smooth_zeros=False,
-        normalize=False,
-    )
-
+    reference = _validate_reference_matrix(TM_ref)
+    observed = absolute_bigram_matrix(get_bigrams(text))
     return float(np.sum(np.log(reference) * observed))
 
 
@@ -78,7 +79,6 @@ def polish_key(
     ciphertext: str,
     key: str,
     TM_ref: np.ndarray,
-    alphabet: str = ALPHABET,
     max_passes: int = 5,
 ) -> tuple[str, str, float]:
     """Improve a substitution key by systematic local pair swaps.
@@ -92,7 +92,6 @@ def polish_key(
         ciphertext: Ciphertext to decrypt.
         key: Initial substitution key.
         TM_ref: Smoothed relative reference bigram matrix.
-        alphabet: Alphabet used by the cipher.
         max_passes: Maximum number of full pair-swap passes.
 
     Returns:
@@ -105,27 +104,28 @@ def polish_key(
     if max_passes < 0:
         raise ValueError("max_passes must be non-negative.")
 
-    validate_key(key, alphabet)
+    validate_key(key)
+    _validate_reference_matrix(TM_ref)
 
     best_key = key
-    best_text = substitute_decrypt(ciphertext, best_key, alphabet)
-    best_score = plausibility(best_text, TM_ref, alphabet)
+    best_text = substitute_decrypt(ciphertext, best_key)
+    best_score = plausibility(best_text, TM_ref)
 
     for _ in range(max_passes):
         pass_best_key = best_key
         pass_best_text = best_text
         pass_best_score = best_score
 
-        for first in range(len(alphabet) - 1):
-            for second in range(first + 1, len(alphabet)):
+        for first in range(len(ALPHABET) - 1):
+            for second in range(first + 1, len(ALPHABET)):
                 candidate_chars = list(best_key)
                 candidate_chars[first], candidate_chars[second] = (
                     candidate_chars[second],
                     candidate_chars[first],
                 )
                 candidate_key = "".join(candidate_chars)
-                candidate_text = substitute_decrypt(ciphertext, candidate_key, alphabet)
-                candidate_score = plausibility(candidate_text, TM_ref, alphabet)
+                candidate_text = substitute_decrypt(ciphertext, candidate_key)
+                candidate_score = plausibility(candidate_text, TM_ref)
 
                 if candidate_score > pass_best_score:
                     pass_best_key = candidate_key
@@ -142,67 +142,40 @@ def polish_key(
     return best_key, best_text, best_score
 
 
-def prolom_substitute(
+def _run_metropolis_hastings(
     text: str,
     TM_ref: np.ndarray,
-    iter: int,
+    iterations: int,
+    rng: random.Random,
     start_key: str | None = None,
-    alphabet: str = ALPHABET,
-    seed: int | None = None,
     progress_every: int = 50,
-    polish: bool = True,
 ) -> tuple[str, str, float]:
-    """Break a substitution cipher with a Metropolis-Hastings search.
+    """Run one Metropolis-Hastings key search."""
+    if iterations < 0:
+        raise ValueError("iterations must be non-negative.")
 
-    A candidate key is generated by swapping two random characters in the
-    current key. Better candidates are accepted automatically. Worse
-    candidates are accepted with probability 0.01, matching the assignment
-    pseudocode. The function returns the best key and plaintext seen during
-    the whole run, not merely the last accepted state.
-
-    Args:
-        text: Ciphertext to decrypt.
-        TM_ref: Smoothed relative reference bigram matrix.
-        iter: Number of Metropolis-Hastings iterations.
-        start_key: Optional starting key. If omitted, a random key is used.
-        alphabet: Alphabet used by the cipher.
-        seed: Optional seed for reproducible random choices.
-        progress_every: Print progress every N iterations. Use 0 to disable.
-        polish: If true, improve the best Metropolis-Hastings key with a
-            deterministic local pair-swap search.
-
-    Returns:
-        Tuple ``(best_key, best_decrypted_text, best_score)``.
-
-    Raises:
-        ValueError: If ``iter`` is negative, ``start_key`` is invalid, or
-            ``TM_ref`` is not a valid reference matrix.
-    """
-    if iter < 0:
-        raise ValueError("iter must be non-negative.")
-
-    rng = random.Random(seed)
+    _validate_reference_matrix(TM_ref)
 
     if start_key is None:
-        current_chars = list(alphabet)
+        current_chars = list(ALPHABET)
         rng.shuffle(current_chars)
         current_key = "".join(current_chars)
     else:
         current_key = start_key
 
-    validate_key(current_key, alphabet)
+    validate_key(current_key)
 
-    current_text = substitute_decrypt(text, current_key, alphabet)
-    current_score = plausibility(current_text, TM_ref, alphabet)
+    current_text = substitute_decrypt(text, current_key)
+    current_score = plausibility(current_text, TM_ref)
 
     best_key = current_key
     best_text = current_text
     best_score = current_score
 
-    for iteration in range(1, iter + 1):
+    for iteration in range(1, iterations + 1):
         candidate_key = _swap_two_random_characters(current_key, rng)
-        candidate_text = substitute_decrypt(text, candidate_key, alphabet)
-        candidate_score = plausibility(candidate_text, TM_ref, alphabet)
+        candidate_text = substitute_decrypt(text, candidate_key)
+        candidate_score = plausibility(candidate_text, TM_ref)
 
         if candidate_score > current_score or rng.random() < 0.01:
             current_key = candidate_key
@@ -221,7 +194,44 @@ def prolom_substitute(
                 f"best log plausibility: {best_score}"
             )
 
-    if polish:
-        best_key, best_text, best_score = polish_key(text, best_key, TM_ref, alphabet)
-
     return best_key, best_text, best_score
+
+
+def prolom_substitute(
+    text: str,
+    TM_ref: np.ndarray,
+    iter: int,
+    start_key: str | None = None,
+) -> tuple[str, str, float]:
+    """Break a substitution cipher with one Metropolis-Hastings run.
+
+    A candidate key is generated by swapping two random characters in the
+    current key. Better candidates are accepted automatically. Worse
+    candidates are accepted with probability ``0.01``, matching the assignment
+    pseudocode. The function returns the best key and plaintext seen during
+    the whole run, not merely the last accepted state.
+
+    Args:
+        text: Ciphertext to decrypt.
+        TM_ref: Smoothed relative reference bigram matrix.
+        iter: Number of Metropolis-Hastings iterations.
+        start_key: Optional starting key. If omitted, a random key is used.
+
+    Returns:
+        Tuple ``(best_key, best_decrypted_text, best_score)``.
+
+    Raises:
+        ValueError: If ``iter`` is negative, ``start_key`` is invalid, or
+            ``TM_ref`` is not a valid reference matrix.
+    """
+    if iter < 0:
+        raise ValueError("iter must be non-negative.")
+
+    return _run_metropolis_hastings(
+        text=text,
+        TM_ref=TM_ref,
+        iterations=iter,
+        rng=random.Random(),
+        start_key=start_key,
+        progress_every=50,
+    )

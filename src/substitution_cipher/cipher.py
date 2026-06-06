@@ -34,16 +34,16 @@ def validate_key(key: str, alphabet: str = ALPHABET) -> None:
         raise ValueError("Key must contain exactly the same characters as the alphabet.")
 
 
-def substitute_encrypt(plaintext: str, key: str, alphabet: str = ALPHABET) -> str:
+def substitute_encrypt(plaintext: str, key: str) -> str:
     """Encrypt ``plaintext`` with a classical substitution key.
 
-    Each character from ``alphabet`` is mapped to the character at the same
-    position in ``key``. Characters outside the alphabet are copied unchanged.
+    Each character from the assignment alphabet is mapped to the character at
+    the same position in ``key``. Characters outside the alphabet are copied
+    unchanged.
 
     Args:
         plaintext: Text to encrypt.
-        key: Permutation of ``alphabet`` used as the substitution key.
-        alphabet: Alphabet used by the cipher.
+        key: Permutation of ``ALPHABET`` used as the substitution key.
 
     Returns:
         Encrypted text.
@@ -51,20 +51,19 @@ def substitute_encrypt(plaintext: str, key: str, alphabet: str = ALPHABET) -> st
     Raises:
         ValueError: If ``key`` is not a valid alphabet permutation.
     """
-    validate_key(key, alphabet)
-    mapping = dict(zip(alphabet, key, strict=True))
+    validate_key(key)
+    mapping = dict(zip(ALPHABET, key, strict=True))
     return "".join(mapping.get(char, char) for char in plaintext)
 
 
-def substitute_decrypt(ciphertext: str, key: str, alphabet: str = ALPHABET) -> str:
+def substitute_decrypt(ciphertext: str, key: str) -> str:
     """Decrypt ``ciphertext`` with the inverse mapping of ``key``.
 
-    Characters outside the alphabet are copied unchanged.
+    Characters outside the assignment alphabet are copied unchanged.
 
     Args:
         ciphertext: Text to decrypt.
-        key: Permutation of ``alphabet`` used for encryption.
-        alphabet: Alphabet used by the cipher.
+        key: Permutation of ``ALPHABET`` used for encryption.
 
     Returns:
         Decrypted text.
@@ -72,6 +71,6 @@ def substitute_decrypt(ciphertext: str, key: str, alphabet: str = ALPHABET) -> s
     Raises:
         ValueError: If ``key`` is not a valid alphabet permutation.
     """
-    validate_key(key, alphabet)
-    reverse_mapping = dict(zip(key, alphabet, strict=True))
+    validate_key(key)
+    reverse_mapping = dict(zip(key, ALPHABET, strict=True))
     return "".join(reverse_mapping.get(char, char) for char in ciphertext)

@@ -29,7 +29,8 @@ def test_evaluate_outputs_writes_markdown_and_csv():
         reports_dir.mkdir()
 
         plaintext = "A" * 1000
-        matrix = transition_matrix(["AA"], smooth_zeros=True, normalize=True)
+        absolute = transition_matrix(["AA"])
+        matrix = absolute / absolute.sum()
         matrix_path = root / "TM_ref.npy"
         save_matrix(matrix, matrix_path)
 

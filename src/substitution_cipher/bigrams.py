@@ -22,33 +22,14 @@ def get_bigrams(text: str) -> list[str]:
     return [text[index : index + 2] for index in range(max(0, len(text) - 1))]
 
 
-def transition_matrix(
-    bigrams: list[str],
-    alphabet: str = ALPHABET,
-    smooth_zeros: bool = True,
-    normalize: bool = False,
-) -> np.ndarray:
-    """Build a bigram transition matrix.
+def absolute_bigram_matrix(bigrams: list[str]) -> np.ndarray:
+    """Build an unsmoothed absolute bigram count matrix.
 
-    The matrix first stores absolute bigram counts. Bigrams containing
-    characters outside ``alphabet`` are ignored. If ``smooth_zeros`` is true,
-    all zero cells are replaced by 1. If ``normalize`` is true, the whole
-    matrix is divided by its total sum so that the result sums to 1.
-
-    Args:
-        bigrams: List of two-character strings.
-        alphabet: Alphabet defining matrix rows and columns.
-        smooth_zeros: Replace zero cells with 1 after absolute counting.
-        normalize: Convert the matrix to relative frequencies.
-
-    Returns:
-        A NumPy array with shape ``(len(alphabet), len(alphabet))``.
-
-    Raises:
-        ValueError: If normalization is requested for an empty zero matrix.
+    Bigrams containing characters outside ``ALPHABET`` are ignored. This helper
+    is used for observed candidate plaintexts in the plausibility score.
     """
-    alphabet_index = {char: index for index, char in enumerate(alphabet)}
-    matrix = np.zeros((len(alphabet), len(alphabet)), dtype=float)
+    alphabet_index = {char: index for index, char in enumerate(ALPHABET)}
+    matrix = np.zeros((len(ALPHABET), len(ALPHABET)), dtype=float)
 
     for bigram in bigrams:
         if len(bigram) != 2:
@@ -60,24 +41,27 @@ def transition_matrix(
 
         matrix[alphabet_index[first], alphabet_index[second]] += 1.0
 
-    if smooth_zeros:
-        matrix[matrix == 0.0] = 1.0
-
-    if normalize:
-        total = float(matrix.sum())
-        if total <= 0.0:
-            raise ValueError("Cannot normalize a matrix with zero total count.")
-        matrix = matrix / total
-
     return matrix
 
 
-def build_reference_matrix_from_text(text: str, alphabet: str = ALPHABET) -> np.ndarray:
+def transition_matrix(bigrams: list[str]) -> np.ndarray:
+    """Build the smoothed absolute bigram transition matrix.
+
+    The assignment requires this exact order: first count absolute bigrams,
+    then replace all zero cells by ``1``. Normalization is deliberately not
+    done here; scripts building a reference matrix divide the result by its
+    total sum afterwards.
+    """
+    matrix = absolute_bigram_matrix(bigrams)
+    matrix[matrix == 0.0] = 1.0
+    return matrix
+
+
+def build_reference_matrix_from_text(text: str) -> np.ndarray:
     """Build a smoothed relative reference matrix from plaintext ``text``.
 
     Args:
         text: Clean reference text.
-        alphabet: Alphabet used for bigram counting.
 
     Returns:
         Relative bigram matrix with zero smoothing and total sum equal to 1.
@@ -85,12 +69,11 @@ def build_reference_matrix_from_text(text: str, alphabet: str = ALPHABET) -> np.
     Raises:
         ValueError: If the matrix cannot be normalized.
     """
-    return transition_matrix(
-        get_bigrams(text),
-        alphabet=alphabet,
-        smooth_zeros=True,
-        normalize=True,
-    )
+    matrix = transition_matrix(get_bigrams(text))
+    total = float(matrix.sum())
+    if total <= 0.0:
+        raise ValueError("Cannot normalize a matrix with zero total count.")
+    return matrix / total
 
 
 def save_matrix(matrix: np.ndarray, path: str | Path) -> None:

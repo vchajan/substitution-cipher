@@ -51,32 +51,22 @@ def test_plausibility_rejects_zero_reference_values():
         raise AssertionError("plausibility should reject zero probabilities")
 
 
-def test_prolom_substitute_runs_and_is_reproducible_with_seed():
+def test_prolom_substitute_runs_with_required_signature():
     key = ALPHABET[3:] + ALPHABET[:3]
     plaintext = "AHOJ_SVETE_AHOJ_SVETE"
     ciphertext = substitute_encrypt(plaintext, key)
     TM_ref = build_reference_matrix_from_text(plaintext * 3)
 
-    result_1 = prolom_substitute(
+    best_key, best_text, best_score = prolom_substitute(
         ciphertext,
         TM_ref,
-        iter=10,
-        seed=7,
-        progress_every=0,
-    )
-    result_2 = prolom_substitute(
-        ciphertext,
-        TM_ref,
-        iter=10,
-        seed=7,
-        progress_every=0,
+        iter=0,
+        start_key=ALPHABET,
     )
 
-    best_key, best_text, best_score = result_1
     validate_key(best_key)
     assert len(best_text) == len(ciphertext)
     assert isinstance(best_score, float)
-    assert result_1 == result_2
 
 
 def test_polish_key_returns_valid_key():
@@ -127,7 +117,7 @@ def test_polish_key_never_worsens_score():
     assert polished_score >= start_score
 
 
-def test_prolom_substitute_with_polish_returns_expected_types():
+def test_prolom_substitute_returns_expected_types():
     key = ALPHABET[3:] + ALPHABET[:3]
     plaintext = "AHOJ_SVETE_AHOJ_SVETE"
     ciphertext = substitute_encrypt(plaintext, key)
@@ -137,9 +127,7 @@ def test_prolom_substitute_with_polish_returns_expected_types():
         ciphertext,
         TM_ref,
         iter=3,
-        seed=19,
-        progress_every=0,
-        polish=True,
+        start_key=ALPHABET,
     )
 
     validate_key(best_key)

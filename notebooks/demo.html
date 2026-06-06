@@ -7796,28 +7796,38 @@ a.anchor-link {
 <!-- End of mermaid configuration --></head>
 <body class="jp-Notebook" data-jp-theme-light="true" data-jp-theme-name="JupyterLab Light">
 <main>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=cell-01">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=6b64680d">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h1 id="Demo:-substitu?n?-?ifra-a-kryptoanal?za">Demo: substitu?n? ?ifra a kryptoanal?za<a class="anchor-link" href="#Demo:-substitu?n?-?ifra-a-kryptoanal?za">¶</a></h1><p>C?lem projektu je uk?zat klasickou substitu?n? ?ifru nad abecedou <code>ABCDEFGHIJKLMNOPQRSTUVWXYZ_</code>, vytvo?en? referen?n? bigramov? matice z ?esk?ch text? a prolomen? ciphertextu pomoc? Metropolis-Hastings algoritmu.</p>
-<p>Fin?ln? dlouh? b?h se spou?t? skriptem <code>scripts/decrypt_samples.py --iterations 20000</code>. Notebook slou?? jako p?ehledn? demonstrace a vyhodnocen?, proto v n?m nejsou extr?mn? dlouh? v?po?ty.</p>
+<h1 id="Demo:-substitu?n?-?ifra-a-kryptoanal?za">Demo: substitu?n? ?ifra a kryptoanal?za<a class="anchor-link" href="#Demo:-substitu?n?-?ifra-a-kryptoanal?za">¶</a></h1><p>Notebook ukazuje povinn? funk?n? API, pohodln? objektov? API a fin?ln? konfiguraci pou?itou pro u?itelsk? ciphertexty. Neslou?? k op?tovn?mu zpracov?n? v?ech 60 ciphertext?; na??t? existuj?c? v?sledky z <code>outputs/</code> a prov?d? jen kr?tkou demonstra?n? uk?zku.</p>
+<p>Pou??van? abeceda je <code>ABCDEFGHIJKLMNOPQRSTUVWXYZ_</code>, kde <code>_</code> p?edstavuje mezeru.</p>
+<p>Fin?ln? konfigurace pro d?vkov? de?ifrov?n?:</p>
+<div class="highlight"><pre><span></span>referen?n? matice: data/processed/TM_ref_krakatit.npy
+restarts: 2
+iterations na restart: 10000
+celkem iterac? na ciphertext: 20000
+polish_key: zapnut?
+</pre></div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=cell-02">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=8a126f2d">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [1]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
 <span class="n">PROJECT_ROOT</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
 <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">PROJECT_ROOT</span> <span class="o">/</span> <span class="s1">'src'</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
@@ -7827,151 +7837,239 @@ a.anchor-link {
 <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">SRC_DIR</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="p">:</span>
     <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">SRC_DIR</span><span class="p">))</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">substitution_cipher</span><span class="w"> </span><span class="kn">import</span> <span class="n">ALPHABET</span><span class="p">,</span> <span class="n">substitute_encrypt</span><span class="p">,</span> <span class="n">substitute_decrypt</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">substitution_cipher.bigrams</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_bigrams</span><span class="p">,</span> <span class="n">load_matrix</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">substitution_cipher.cryptanalysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">plausibility</span><span class="p">,</span> <span class="n">prolom_substitute</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">substitution_cipher</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ALPHABET</span><span class="p">,</span>
+    <span class="n">SubstitutionCipher</span><span class="p">,</span>
+    <span class="n">get_bigrams</span><span class="p">,</span>
+    <span class="n">plausibility</span><span class="p">,</span>
+    <span class="n">prolom_substitute</span><span class="p">,</span>
+    <span class="n">substitute_decrypt</span><span class="p">,</span>
+    <span class="n">substitute_encrypt</span><span class="p">,</span>
+    <span class="n">transition_matrix</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">substitution_cipher.bigrams</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_matrix</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="n">PROJECT_ROOT</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">ALPHABET</span><span class="p">)</span>
+<span class="n">KR_MATRIX_PATH</span> <span class="o">=</span> <span class="n">PROJECT_ROOT</span> <span class="o">/</span> <span class="s1">'data'</span> <span class="o">/</span> <span class="s1">'processed'</span> <span class="o">/</span> <span class="s1">'TM_ref_krakatit.npy'</span>
+<span class="n">COMBINED_MATRIX_PATH</span> <span class="o">=</span> <span class="n">PROJECT_ROOT</span> <span class="o">/</span> <span class="s1">'data'</span> <span class="o">/</span> <span class="s1">'processed'</span> <span class="o">/</span> <span class="s1">'TM_ref_combined.npy'</span>
+<span class="n">TM_ref</span> <span class="o">=</span> <span class="n">load_matrix</span><span class="p">(</span><span class="n">KR_MATRIX_PATH</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Projekt:'</span><span class="p">,</span> <span class="n">PROJECT_ROOT</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Matice:'</span><span class="p">,</span> <span class="n">KR_MATRIX_PATH</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="n">PROJECT_ROOT</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Abeceda:'</span><span class="p">,</span> <span class="n">ALPHABET</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=cell-03">
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>Projekt: D:\unicorn\python
+Matice: data\processed\TM_ref_krakatit.npy
+Abeceda: ABCDEFGHIJKLMNOPQRSTUVWXYZ_
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=911c0d26">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Pou?it?-abeceda">Pou?it? abeceda<a class="anchor-link" href="#Pou?it?-abeceda">¶</a></h2><p>Projekt pou??v? p?esn? tuto abecedu:</p>
-<div class="highlight"><pre><span></span>ABCDEFGHIJKLMNOPQRSTUVWXYZ_
-</pre></div>
-<p>Znak <code>_</code> reprezentuje mezeru. Referen?n? texty i ciphertexty se validuj? tak, aby obsahovaly pouze tyto znaky.</p>
+<h2 id="Povinn?-funk?n?-API">Povinn? funk?n? API<a class="anchor-link" href="#Povinn?-funk?n?-API">¶</a></h2><p>PDF zad?n? vy?aduje samostatn? funkce <code>substitute_encrypt</code>, <code>substitute_decrypt</code>, <code>get_bigrams</code>, <code>transition_matrix</code>, <code>plausibility</code> a <code>prolom_substitute</code>. Objektov? t??da <code>SubstitutionCipher</code> je pouze pohodln? fas?da nad stejnou implementac?.</p>
 </div>
 </div>
 </div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=cell-04">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="?ifrov?n?-a-de?ifrov?n?">?ifrov?n? a de?ifrov?n?<a class="anchor-link" href="#?ifrov?n?-a-de?ifrov?n?">¶</a></h2><p>Kl?? je permutace cel? abecedy. ?ifrov?n? mapuje p?vodn? abecedu na kl??, de?ifrov?n? pou??v? inverzn? mapov?n?.</p>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=cell-05">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=e1b840aa">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [2]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">key</span> <span class="o">=</span> <span class="n">ALPHABET</span><span class="p">[</span><span class="mi">3</span><span class="p">:]</span> <span class="o">+</span> <span class="n">ALPHABET</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span>
-<span class="n">plaintext</span> <span class="o">=</span> <span class="s1">'BYL_POZDNI_VECER_PRVNI_MAJ'</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">key</span> <span class="o">=</span> <span class="s1">'DEFGHIJKLMNOPQRSTUVWXYZ_ABC'</span>
+<span class="n">plaintext</span> <span class="o">=</span> <span class="s1">'BYL_POZDNI_VECER'</span>
 
 <span class="n">ciphertext</span> <span class="o">=</span> <span class="n">substitute_encrypt</span><span class="p">(</span><span class="n">plaintext</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
 <span class="n">decrypted</span> <span class="o">=</span> <span class="n">substitute_decrypt</span><span class="p">(</span><span class="n">ciphertext</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="s1">'Plaintext :'</span><span class="p">,</span> <span class="n">plaintext</span><span class="p">)</span>
+<span class="n">bigrams</span> <span class="o">=</span> <span class="n">get_bigrams</span><span class="p">(</span><span class="n">plaintext</span><span class="p">)</span>
+<span class="n">absolute_matrix</span> <span class="o">=</span> <span class="n">transition_matrix</span><span class="p">(</span><span class="n">bigrams</span><span class="p">)</span>
+<span class="n">relative_matrix</span> <span class="o">=</span> <span class="n">absolute_matrix</span> <span class="o">/</span> <span class="n">absolute_matrix</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+<span class="n">score</span> <span class="o">=</span> <span class="n">plausibility</span><span class="p">(</span><span class="n">plaintext</span><span class="p">,</span> <span class="n">relative_matrix</span><span class="p">)</span>
+
+<span class="n">found_key</span><span class="p">,</span> <span class="n">found_plaintext</span><span class="p">,</span> <span class="n">found_score</span> <span class="o">=</span> <span class="n">prolom_substitute</span><span class="p">(</span>
+    <span class="n">ciphertext</span><span class="p">,</span>
+    <span class="n">relative_matrix</span><span class="p">,</span>
+    <span class="mi">5</span><span class="p">,</span>
+    <span class="n">ALPHABET</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Plaintext:'</span><span class="p">,</span> <span class="n">plaintext</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">'Ciphertext:'</span><span class="p">,</span> <span class="n">ciphertext</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">'Decrypted :'</span><span class="p">,</span> <span class="n">decrypted</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Decrypted:'</span><span class="p">,</span> <span class="n">decrypted</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">'Round-trip OK:'</span><span class="p">,</span> <span class="n">decrypted</span> <span class="o">==</span> <span class="n">plaintext</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Po?et bigram?:'</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">bigrams</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Matice:'</span><span class="p">,</span> <span class="n">relative_matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="s1">'suma'</span><span class="p">,</span> <span class="n">relative_matrix</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Uk?zka prolom_substitute:'</span><span class="p">,</span> <span class="n">found_plaintext</span><span class="p">,</span> <span class="n">found_score</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=cell-06">
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>Plaintext: BYL_POZDNI_VECER
+Ciphertext: EAOCSRBGQLCYHFHU
+Decrypted: BYL_POZDNI_VECER
+Round-trip OK: True
+Po?et bigram?: 15
+Matice: (27, 27) suma 1.0
+Uk?zka prolom_substitute: EAOCSRBGQLCYHFHU -98.87510598012987
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=6109582f">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Referen?n?-texty">Referen?n? texty<a class="anchor-link" href="#Referen?n?-texty">¶</a></h2><p>Pro jazykov? model ?e?tiny jsou pou?ity dva texty Karla ?apka:</p>
-<ul>
-<li>Krakatit: <code>data/processed/clean_text.txt</code></li>
-<li>V?lka s mloky: <code>data/reference_texts/valka_s_mloky_clean.txt</code></li>
-</ul>
-<p>Skript <code>scripts/build_combined_reference_matrix.py</code> spoj? dostupn? texty p?es jeden znak <code>_</code>, ulo?? <code>data/processed/combined_clean_text.txt</code> a vytvo?? <code>data/processed/TM_ref.npy</code>.</p>
+<h2 id="Objektov?-API">Objektov? API<a class="anchor-link" href="#Objektov?-API">¶</a></h2><p>Doporu?en? pou?it? je p?es <code>SubstitutionCipher</code>. N?sleduj?c? bu?ka spou?t? jen kr?tkou demonstra?n? kryptoanal?zu na jednom u?itelsk?m ciphertextu. Fin?ln? b?h se prov?d? skriptem <code>scripts/decrypt_samples.py</code> s konfigurac? <code>2 x 10 000</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=cell-07">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=01c4f4ef">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [3]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">combined_text_path</span> <span class="o">=</span> <span class="n">PROJECT_ROOT</span> <span class="o">/</span> <span class="s1">'data'</span> <span class="o">/</span> <span class="s1">'processed'</span> <span class="o">/</span> <span class="s1">'combined_clean_text.txt'</span>
-<span class="n">matrix_path</span> <span class="o">=</span> <span class="n">PROJECT_ROOT</span> <span class="o">/</span> <span class="s1">'data'</span> <span class="o">/</span> <span class="s1">'processed'</span> <span class="o">/</span> <span class="s1">'TM_ref.npy'</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">sample_ciphertext_path</span> <span class="o">=</span> <span class="n">PROJECT_ROOT</span> <span class="o">/</span> <span class="s1">'data'</span> <span class="o">/</span> <span class="s1">'ciphertexts'</span> <span class="o">/</span> <span class="s1">'text_1000_sample_1_ciphertext.txt'</span>
 
-<span class="n">combined_text</span> <span class="o">=</span> <span class="n">combined_text_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s1">'utf-8'</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-<span class="n">TM_ref</span> <span class="o">=</span> <span class="n">load_matrix</span><span class="p">(</span><span class="n">matrix_path</span><span class="p">)</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="s1">'D?lka spojen?ho textu:'</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">combined_text</span><span class="p">))</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">'Po?et bigram?:'</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">get_bigrams</span><span class="p">(</span><span class="n">combined_text</span><span class="p">)))</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">'Shape matice:'</span><span class="p">,</span> <span class="n">TM_ref</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">'Suma matice:'</span><span class="p">,</span> <span class="n">TM_ref</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">'Obsahuje nuly:'</span><span class="p">,</span> <span class="nb">bool</span><span class="p">((</span><span class="n">TM_ref</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">()))</span>
+<span class="k">if</span> <span class="n">sample_ciphertext_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+    <span class="n">sample_ciphertext</span> <span class="o">=</span> <span class="n">sample_ciphertext_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s1">'utf-8'</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="n">cipher</span> <span class="o">=</span> <span class="n">SubstitutionCipher</span><span class="o">.</span><span class="n">from_matrix_file</span><span class="p">(</span><span class="n">KR_MATRIX_PATH</span><span class="p">)</span>
+    <span class="n">demo_result</span> <span class="o">=</span> <span class="n">cipher</span><span class="o">.</span><span class="n">crack</span><span class="p">(</span>
+        <span class="n">sample_ciphertext</span><span class="p">,</span>
+        <span class="n">iterations</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+        <span class="n">restarts</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">polish</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">progress_every</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">'D?lka ciphertextu:'</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">sample_ciphertext</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">'Demonstra?n? plaintext za??tek:'</span><span class="p">,</span> <span class="n">demo_result</span><span class="o">.</span><span class="n">plaintext</span><span class="p">[:</span><span class="mi">120</span><span class="p">])</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">'Demonstra?n? sk?re:'</span><span class="p">,</span> <span class="n">demo_result</span><span class="o">.</span><span class="n">score</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">'Uk?zkov? ciphertext nen? k dispozici.'</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=cell-08">
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>Restart 1/1 best plausibility: -6789.140269238431
+Overall best restart: 1, plausibility: -6789.140269238431
+D?lka ciphertextu: 1000
+Demonstra?n? plaintext za??tek: OUNV_ROANOD_JNOTOVTKORD_OM_VPOANOI_KCLOOVTIJU_STOK_OCTHOHYALOUEXTUNOD_MNOUS_UNOC_ALOZ_OHND_IOECTSOK_OCPK_OENHLUSTOJSTUNY
+Demonstra?n? sk?re: -6789.140269238431
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=3d5b6338">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Kontrola-matice">Kontrola matice<a class="anchor-link" href="#Kontrola-matice">¶</a></h2><p>Fin?ln? kontrola po sestaven? kombinovan? matice:</p>
-<ul>
-<li>shape: <code>(27, 27)</code></li>
-<li>suma: <code>1.000000000000</code></li>
-<li>obsahuje nuly: <code>False</code></li>
-<li>d?lka spojen?ho referen?n?ho textu: <code>816372</code></li>
-<li>po?et bigram?: <code>816371</code></li>
-</ul>
+<h2 id="Referen?n?-matice">Referen?n? matice<a class="anchor-link" href="#Referen?n?-matice">¶</a></h2><p>Projekt uchov?v? samostatnou matici z Krakatitu i kombinovanou matici z Krakatitu a V?lky s mloky. Fin?ln? konfigurace pou??v? Krakatit, proto?e benchmark na kontroln?m vzorku byl s touto matic? stabiln?j??.</p>
 </div>
 </div>
 </div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=cell-09">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Vizualizace-bigramov?-matice">Vizualizace bigramov? matice<a class="anchor-link" href="#Vizualizace-bigramov?-matice">¶</a></h2><p>N?sleduj?c? obr?zek ukazuje logaritmovan? hodnoty referen?n? bigramov? matice. Logaritmus je pou?it proto, aby byly rozd?ly v ?etnostech viditeln?j??.</p>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=cell-10">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=46ec42b7">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [4]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-
-<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">path</span> <span class="ow">in</span> <span class="p">[(</span><span class="s1">'krakatit'</span><span class="p">,</span> <span class="n">KR_MATRIX_PATH</span><span class="p">),</span> <span class="p">(</span><span class="s1">'combined'</span><span class="p">,</span> <span class="n">COMBINED_MATRIX_PATH</span><span class="p">)]:</span>
+    <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="n">matrix</span> <span class="o">=</span> <span class="n">load_matrix</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">'  shape:'</span><span class="p">,</span> <span class="n">matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">'  suma:'</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">matrix</span><span class="o">.</span><span class="n">sum</span><span class="p">()))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">'  obsahuje nuly:'</span><span class="p">,</span> <span class="nb">bool</span><span class="p">((</span><span class="n">matrix</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">()))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s1">'matice chyb?:'</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>krakatit
+  shape: (27, 27)
+  suma: 0.9999999999999999
+  obsahuje nuly: False
+combined
+  shape: (27, 27)
+  suma: 1.0
+  obsahuje nuly: False
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=6fc3b542">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [5]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">TM_ref</span><span class="p">),</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">'viridis'</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">'log pravd?podobnosti'</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ALPHABET</span><span class="p">)),</span> <span class="nb">list</span><span class="p">(</span><span class="n">ALPHABET</span><span class="p">),</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">90</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">yticks</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ALPHABET</span><span class="p">)),</span> <span class="nb">list</span><span class="p">(</span><span class="n">ALPHABET</span><span class="p">))</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">'Referen?n? bigramov? matice'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">'Referen?n? bigramov? matice: Krakatit'</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
@@ -7979,158 +8077,286 @@ a.anchor-link {
 </div>
 </div>
 </div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=cell-11">
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedImage jp-OutputArea-output" tabindex="0">
+<img alt="No description has been provided for this image" class="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAqYAAAJGCAYAAACJP0cdAAAAOnRFWHRTb2Z0d2FyZQBNYXRwbG90bGliIHZlcnNpb24zLjEwLjksIGh0dHBzOi8vbWF0cGxvdGxpYi5vcmcvJkbTWQAAAAlwSFlzAAAPYQAAD2EBqD+naQAAbfpJREFUeJzt3Qd8U+X6wPGnm1EomzLK3sgSRMDBVHDhuujFRYXrAMUBrooKuIpbEQUXVP8uVBQVFVQEFyCiIipDQJCi7NEyS0f+n+f1pjdNd/MmOWl/Xz7vh/YkfXJycpI8551hLpfLJQAAAECQhQd7BwAAAABFYgoAAABHIDEFAACAI5CYAgAAwBFITAEAAOAIJKYAAABwBBJTAAAAOAKJKQAAAByBxBQAAACOQGIKv1u/fr2cfvrpEhcXJ2FhYTJ37lyOehEmTZpkjtPu3buLPU7NmjWTxMREjmc5et0ron79+slxxx3n98epyMcYCBUkpsiVkpJiPrTdJTIyUho1amQSn7/++qvMR2rEiBHyyy+/yAMPPCD/93//Jz169HDkUc/IyJDnnntOevfuLTVq1JAGDRrIlVdeWaIEsSBLliyRYcOGSZMmTSQ2Nlb69OkjX375pfX9Rugc88OHD5vkaPHixRKKF0epqanSsmVLqVWrlvz444/iRKU9xg8++CAXy4CDkJgin3vvvdckkDNmzJAzzjhDXn31Venbt68cPXq01EfryJEjsnTpUhk1apRcf/31ctlll0njxo0dedR1P8eNGyddunSRRx991Ozr66+/Lv/617/KFO/SSy+VPXv2yC233GKScv2SHzJkiKxdu9baPq9bt05eeOEFa/FCXSCOua9J0+TJkwtMmu666y7zfnEqvTjt37+/7N27Vz777DM5/vjjxYlKe4xJTAFniQz2DsB5NBl112r+5z//kTp16shDDz0kH3zwgVx00UWlirVr1y7zv9ZA2qIJcnR0tISH272uatWqlel20LBhw9xtUVFRkpycbL6Utfa4NN5880058cQT8xzXtm3bypw5c2TChAlW9jkmJkZscblc5thWrlxZQlUgjrm/aAuFFif6+++/TVKqSb8mpd27dy82OaxSpYo4jZOPMZxFPwuPHTsWkMfS77NKlSoF5LFCATWmKNYpp5xi/t+4cWOe7VoLpbWJ2qynbypNZjV5ddPmtKZNm5qfb731VtM0qH0i3TTZGzlypNSvX98kWB07dpSZM2fmeQyt9dC/04RDazs0OdQvvPT0dHP7d999Z2rEtP+qbtea3W+//bbAZskNGzaYbgmaJOv9tZlev0DdtCbXMylV7g8L9wfU5s2bTSytUX3++edNs6bu+wknnCDff/99nr/1TJAKilUcre3TC4Hq1atL7dq15cYbb8xXa11QH9NVq1aZ46AJpj6n+++/X2bNmmX2W/ff82/PPvtsWbBggXnt9P7alUHp/QcMGCD16tUzz69Dhw4yffr0fPvojqGvkztGp06dcmur3n33XfO7PndNZn766ad8Mb744gtzjlWtWtW8Nueee66sWbMm9/Z33nnH7HtBTfK6v3rbr7/+6tMxd58jv//+u6kp1/Ojbt26cvfdd5uEXZuwdb/0tYiPj5fHHnssz99r/Hvuucc8R/1bfS76nBYtWpR7Hz32GlNpjZ67y4w+tuc+eNMWi549e5rzu2bNmnLqqafKp59+muc+n3zySe4xrFatmpx11lny22+/5blPZmamec9u27ZNSkPvr0npzp07zeN6d8Vx9w/94YcfzL7pft55553mtvfff9/si76v9DzS98t9990n2dnZxT6uPpbGGj58uGRlZfnlGOvPhw4dkpdffjn3vvTZhn7ONm8aa86zQJTmzZuXqUWyvOLSEcVyJzP6peimX3onnXSSSRTvuOMO8yXx1ltvyXnnnWdqp84//3y54IILTKJx8803my+XM8880/T7Uzt27JBevXqZLwJt4tcvE/1y1SZ/TTpvuummPPugX2Z6ValNtNoXVH/WhEZrxPSLauLEiaYG1Z1Qff311+bL3JMmefoBoDWg2j/uxRdfNImX1gYX5I8//pBp06aZL179O0/axH/gwAG55pprzHN4+OGHzfPVv9FaVm85OTkyfvx48+Wszc0lofuriZ/u77Jly2Tq1Kmyb98+eeWVV4ptbtV9SkpKMq+LPs/Cala1K4C+Nvo8rrrqKlO7qDQJ1QuFoUOHmhqmDz/8UMaMGWOex3XXXZcnhib8l1xyiYmhSZ0m7eecc47pCqIJiv6d0uehz0kf013b/fnnn5vXsEWLFiZp0GbWp59+2pxb+hrp89fERs8bPb804fY0e/Zss58FDZwpyzG/+OKLpX379jJlyhT56KOPTFKvF16aAOt5pefKa6+9Zs5DvRjRREzpOavHWY+lHkc9N1566SUZPHiwLF++XLp27WrOcT2uo0ePzn1/qM6dOxe6P5pc6XHRvrLaxUbPe70Y03NfBxQq7Xaj/bj1sXT/9GJLH+fkk082FwLui0E9N/S56X21P3lJ6PtULz63b99uEkV9zgXRmlR9Hf/973+bc0AvNpU+jr522kVG/9f91uRSj9cjjzxS6OPOmzfPPK6+HnqxGhERYS7UbB9jPXbaKqSfFVdffbXZpskzKja9CNq+M1v+/KGZVK/m3/q79AM50rT7ZvOY1Jr+lwv4r1mzZrn0lPj8889du3btcqWmprreeecdV926dV0xMTHmd7eBAwe6OnXq5Dp69GjutpycHFefPn1crVu3zt22adMmE/ORRx7Jc5xHjRrlatCggWv37t15tv/73/92xcXFuQ4fPmx+X7Rokfn7Fi1a5G5zP5Y+zuDBg83Pbnqf5s2bu0477bTcbRMnTjQxRo4cmeexzj//fFft2rULfP3/+usvV7NmzUzZtm1bvuejf7d3797c7e+//77Z/uGHHxYY7+qrr3aFhYW5Xn/99WLPN/f+Dh06NM/2MWPGmO0///xz7ramTZu6RowYkfv72LFjzeP89NNPudv27NnjqlWrlvlb3X/Pv9Vt8+fPz7cPnsfaTY+1vg6e3DGWLFmSu23BggVmW+XKlV1//vln7vbnnnvObNfX1K1r166uevXqmX100+cXHh7uuuKKK3K3DR8+3NwvKysrd5u+Lnq/e++919ox179x08dq3LixiTFlypTc7fv27TPPzfO4630zMjLyxNT71a9fP895p+8rfRx9vML2wW39+vXm+el5mp2dnee+7nP+wIEDrho1ariuuuqqPLdv377dvI88t7vPXc/9Lu546OtbvXp119KlSwu9b9++fc19Z8yYUaLz6JprrnFVqVIlz2eHxujYsaP5ec6cOa6oqCiz757P2x/HWFWtWrVExwQVR1pamjlP9vze3JW5raVfiz6GPpY+Jv5BUz7yGTRokKl5SEhIMLUWWuumTfTuQUs6+EFrPrT2S2sttCZDi9aaaO2F9tMsahS/No1qrarWqunP7r/Xon+flpaWb8Sv1vJ49n1cuXKleRytqdPHdf+9NssNHDhQvvrqK1Nj5unaa6/N87s2A+rfursFeNKaGt2u/em06bag2z1rkN3dHbTG1JvW6mizvzb/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O7es+wMAABB85aDG9Oyzz5bWrVvLF198YRZDevLJJ802nYc+Pj7eymNoLI3rbj3v2LGj3HDDDWbKqLLwaR5TAAAA+MZ7fveMjAyfD+nu3btl/fr1cscdd5iaUk1Qp0yZIocPH5Zff/3Vyku2YMEC6dChgyxfvtw8hpZly5aZ5PSzzz4LXlM+AABAuRLAeUy9p82cOHGiTJo0yafQtWvXlrZt28orr7xiVuvUGZGee+45qVevnnTv3l1s0KT35ptvNgmv9/bbb79dTjvttNBNTIfU/FWqVPN98NTGg2WbnqAgNfrvFJv+rl7fWqwn4st2JVKQmwdfZy3W7k7/TBdhQ51fjlmL1abKdrFpc/XG1mJl17P3PFs/U/rl3wqTtc3eMTvwo91lik8663trsdY8+c8CIU7TZtQKa7HWTzvRWqx9x+eITX8dirMWyzFfaH50fKOtVuN9t7WttVg/HvzfxOtllXEwU0R+kIomNTU1z3idGAvTaurI+M8//9xMcl+tWjUJDw83Sen8+fOlZs2aYoM237/11lsFTiWqzftlQVM+AACAlzBXYIrSpNSzxBSRmGptpCadRRUdIa8LH1133XUmGf36669Nc7smqTq907Zt26y83rrQki5D6k236eOWRUW4wAQAACgXxo8fL4mJiUXep0WLFmbA07x582Tfvn25tbG6jr32/Xz55ZdNguurq666yozI1ymj+vTpY7bpDAAPPfRQnlU+S4PEFAAAIETUrVvXlOLoICelTfie9PecHDtdcu6++27TTeCxxx4zS86rhg0bmv6xOjK/LEhMAQAAytl0Ub179zZ9SUeMGCH33HOPmS7qhRdekE2bNslZZ51l5TG024AOftJy4MABs00TVV/QxxQAAKCcqVOnjhnodPDgQRkwYID06NFDvvnmG3n//felS5cuVh9r586dpl+pll27dgUvMdU+Dpote08ToBPs63YAAAAER48ePcxco3v27DHzoy5dulTOOOMMa/G1lvTyyy83zfd9+/Y1RX++7LLLJC0tLTg1ppUqVTKdXLVzLQAAACqG//znP/Ldd9/JRx99JPv37zdFB1ytWLFCrrnmmuAkpoMGDTLLWiUnJ/saCgAAwBG03dfv00VJaJs3b57MnDlTBg8enDvVlf6sfVk//PDD4CSmERER8uCDD8rTTz8tW7cWP/GvLrPlvfQWAAAAQouuLhUXl3+RDN1W1kn8rQx+Ov/886Vr165mCa3iaM2q7rC7eC/DBQAA4JglSf1dQthdd91l5ivdvv1/KwXqz7feequZSiqo00VpP1Md9XXLLbcUeT+d58pz0lWtMSU5BQAACC3Tp0+XDRs2SJMmTUxRW7ZsMStX6ej85557Lve+P/74Y2AT01NPPdX0K9DEs6gVCXRnbawBCwAA4DchPo9pIOgSp7ZZnWBfp43SJv22bdvaDAsAAACHKUkXzqBOsN+pUye59NJLZerUqTbDAgAABKfG1N8lRG3evFmWLFkiWVlZVuNaX/np3nvvtbYGKwAAAJzljTfekNatW8vJJ58s3bt3zzP4KaiJaUpKilnlyVOzZs3MlFAuVwhfBgAAgArN73OY/reEokmTJsk999xjVpQ6/vjjpX///mYQlCNrTAEAAFB+bd261SxFqnOVzpo1S/r06SNt2rQxc9vr6Pv27dubn4M++AkAAADlW/PmzWXjxo2mlVy99NJLcu2118q2bdukZcuWZs76tLS0MsUmMQUAAPDGdFGFuuyyy+TJJ5+UgQMH5m474YQTrEwjFeYKcmdQnWBfV4A6tc/dEhlZyed44ZN2iS1xMUfEpprRh63F+v3ujtZi7e4UbS1W1CF7p1Pjf2+yFmvHS83FpsPnl+1KsCDnNPvVWqzV6Q2sxQoPszeIMTYqQ2z6bZa98/+Ua763FmtNd3ujU6t+VddarLqVDlqLlXqobMsMFub0equtxUrLqmIt1rIRXa3FOtKwqrVYVX9KFZvi37N3boyL/8znGAcP5Eif47aZ2jZddz2YeUmz+x+Q8Eq+5yVFyTl6VDbfNSGoz9dpqDEFAADwRo1pUJCYAgAAoEQuuOCCkt1RRN59910pLRJTAAAAL4GYzikUp4uKi4vL/Vl7g7733ntmW48ePcy2H374Qfbv31+qBNYTiSkAAABKRKeHcrv99tvloosukhkzZuROD5WdnS1jxowpc59Zn+cxTU1NlZEjR0rDhg0lOjpamjZtKjfeeKOZdBUAACAkucICU0LYzJkz5ZZbbskzZ6n+PG7cOHNbwBPTP/74w1Tdrl+/3ixPpbP+a9a8cOFC6d27t+zdu9eX8AAAAHCorKwsWbt2bb7tuq2sy9P71JR/3XXXmVrSTz/9VCpXrmy2NWnSRLp162YmWJ0wYYJMnz7dl4cAAAAIPEblF+vKK6+UUaNGmcn2e/bsabZ99913MmXKFHNbQBNTrQ1dsGCBPPDAA7lJqVt8fLxceumlMnv2bHn22WclLOx/VdUZGRmmeM4XBgAAgNDy6KOPmpzvscceM6s+qQYNGsitt94q48ePD2xiqs33OhpL10MtiG7ft2+f7Nq1S+rVq5e7XZepmjx5clkfFgAAwO8YlV+88PBwue2220xxVzT6ulCAz4OfSrtwVFJSklnhwF108BQAAABCy/333y+bNm3KTUhtrF5V5sS0VatWpol+zZo1Bd6u22vWrCl16+ZdVi8mJiZ35209CQAAAATW22+/bfLBPn36mK6bu3fvDl5iWrt2bTnttNPMjhw5kndN+e3bt8trr70mF198cZ7+pQAAACE1+MnfJYT9/PPPsmrVKunXr5/pb6pTh5511lny+uuvy+HDhwPflD9t2jQzkGnw4MHy1VdfmWb5+fPnm4S1UaNGZmAUAAAAyqeOHTvKgw8+aKYQXbRokTRr1kxuuukmMygq4Ilp69atZcWKFdKiRQsz879OEXX11VdL//79ZenSpVKrVi1fwgMAAATHf5ck9WcJ9RpTb1WrVjUzNelUopmZmRKUJUl1paeUlBRfwwAAACDE6OAnbbrXsm7dOunbt6+Zfelf//pXcBJTAACAcocJ9ovVq1cv+f7776Vz585mQv3hw4ebrpy+IDEFAABAqQ0cOFBmzpwpHTp0EFtITAEAALxRY1osfwxyd0xi2uXhVRITG+VznJXdxJqtF/eyF0xE0mYvsxbryMf7rcVKuNlaKMlet8FarKwvWtmL9egesan6KzWtxVpY+SRrsQ6fn2YtVsPzV1uLtfre3mLTTTd9YC3Wex3yzrXsFJfGf2ct1q2fXGItlqtqlti0ftv/Vgb0VYtLVlqLJWLv/I+xuFvrk+2+l7J6LbUWa8KX5/kcI/PQMRF5wcr+IDC2bt0qH3zwgWzZskWOHdPX738ef/zx0E1MAQAAnIIlSYu3cOFCGTp0qJmdae3atXLcccfJ5s2bzaqgxx9/vARlSVIAAABUPElJSXLLLbfIL7/8IpUqVZI5c+aYOe11ZP6wYcPKFJPEFAAAAKWmy89fccUV5ufIyEizEmhsbKzce++98tBDD5U+IIkpAAAAyjqhvrtfaYMGDWTjxo25t+3evbtMMeljCgAAgDLNY/rNN99I+/bt5cwzz5Tx48ebZv13333X3Ba0pvzExEQJCwszRZehatWqlanGzcqyO3oTAAAgoNNF+buEsMcff1xOPPFE87Ou9qTzms6ePVuaNWsmL730UnBrTIcMGSKzZs2SjIwM+fjjj+W6666TqKgo0zEWAAAA5Ud2draZKkpXfXI368+YMcPnuNYGP8XExEh8fLw0bdpURo8eLYMGDTLzWnnTxDU9PT1PAQAAcOJ0Uf4uoSoiIkJOP/102bdvn9W4fhuVX7ly5XwTrark5GSJi4vLLQkJCf7aBQAAAPiJzlv6xx9/ODsx1UlVP//8c1mwYIEMGDAg3+3atJ+WlpZbdL4rAAAAx6F/aZHuv/9+M4/pvHnzZNu2bVZaxK31MdWd0rmrMjMzJScnRy655BKZNGlSgU3+WgAAABC6zjzzTPO/rv6kA+A9Kyn1d+2HGrTEtH///jJ9+nQzKr9hw4ZmolUAAICQFIhR8yHcx1QtWrRIbLOWPepoLJ0mCgAAAOVf3759rcekWhMAAMBLIEbNh/KofDcdla9zlurypKpDhw5y5ZVXSq1atcRRo/IBAABQfn311VdmMv2pU6eaBFWL/ty8eXNzW9BqTFNSUmyEAQAAcAb6mBZLF1O6+OKLzRgjnddU6YCnMWPGmNt0edLSosYUAAAApbZhwwYZP358blKq9Odx48aZ28qCxBQAAMALKz8V7/jjj8/tW+pJt3Xp0kXKIsylk00FkU7AqitA9ZNzJTIsKpi7AgAIsPCuHazFylm52losBEeWK1MWy/tmAZ7q1asHNS9pc8uDEhFTya+PlZ1xVH5/9M6gPl9fzJ49W2677TYZO3as9OrVy2xbtmyZPPPMMzJlyhRp37597n07d+5copiMygcAAECpDR8+3PyvyWlBt+kk+6WdbJ/EFAAAwBuDn4q1adMmsY3EFAAAAKXWtGlTsY3EFAAAwBs1pkHBqHwAAACUj8Q0NTVVRo4cKQ0bNpTo6GhTrXvjjTfKnj177OwhAABAgDFdVAgmpn/88Yf06NFD1q9fL2+88YaZTHXGjBmycOFC6d27t+zdu9fengIAAKBc86mPqS43pbWkn376qVSuXNlsa9KkiXTr1k1atmwpEyZMMMtUecrIyDDFc74wAAAAR6GPaWjVmGpt6IIFC8x6qO6k1C0+Pl4uvfRSM/Gq9/z9ycnJZuJad0lISCj73gMAACAoatasKbVq1cpXateuLY0aNZK+ffvKrFmzApOYavO9Jp2es/p70u379u2TXbt25dmelJRkVjhwF+2jCgAA4MgaU3+XEHbPPfdIeHi4nHXWWTJ58mRT9Gfdpq3qbdq0kdGjR8sLL7wQuOmiilvRVJv6PcXExJgCAACA0PXNN9/I/fffL9dee22e7c8995zp5jlnzhyzFOnUqVPlqquu8m+NaatWrcwSU2vWrCnwdt1et25dqVGjRlkfAgAAICgYlV887dI5aNCgfNsHDhxoblNnnnmmGSxfUmVOTLX/wGmnnSbPPvusHDlyJM9t27dvl9dee00SExPLGh4AAAAOpv1JP/zww3zbdZvepg4dOiTVqlULTFP+tGnTpE+fPjJ48GBTldu8eXP57bff5NZbbzX9CrTvAQAAAMqfu+++2/QhXbRokfTs2dNs+/777+Xjjz8204eqzz77zAyCCkhi2rp1a7MDkyZNkosuukh27txp+pxecMEF8n//939SpUoVX8IDAAAEB9NFFUv7jXbo0MFUVL777rtmW9u2beXLL780FZdq/PjxUho+D35q1qyZpKSk5P4+ceJEefzxx2XVqlXSq1cvX8MDAADAoU466SRTbPE5MfWmUwVosrps2TJTratTBgAAAITi4Cd/P0aoy87Olrlz5+YOhu/YsaMMHTpUIiIinJGYqiuvvNIfYQEAAOAQuhS9jrr/66+/TBO+eyElXTzpo48+MquAOiIxLYuhK3ZJ5Vjfd2fmA0PFlh0n5YhTJfb5xlqs5UOaWIu17bzm1mLt65xtLdYVfb4Vm5Z1ibIWa8P/dbMWK3pD3lXYfBJmL1RU1332gonILe0+sxbroVcushar8YNLrMX6+9Z/+mfZEH3qbmux9u+vKjZ1b77FWqzv15xgLVaLN+x9/kd+8YO1WAfntxCb/v6jjrVYtRL2+xwj+3CGiL23pG/oY1qsG264wSSf2kruHoW/Z88eueyyy8xtmpyGbGIKAACA0KGDnDyTUvd0olOmTClzv1MSUwAAAG/UmBZLV/I8cOBAvu0HDx7Mt/JnSTEyCQAAAKV29tlny9VXXy3fffedmS5Ui9ag6hKlOgCqLEhMAQAACuhmH4gSyqZOnWr6mPbu3VsqVapkijbh67L1Tz31VJli0pQPAACAUqtRo4a8//77sn79elm7dq3Z1r59e5OYlpXPNaaJiYkSFhZmSlRUlFmW9LbbbpOjR4/6GhoAACC4fUz9XcqB1q1byznnnGOKL0mptRrTIUOGyKxZsyQzM1N++OEHGTFihElUH3roIRvhAQAA4ADjxo0r8X11JdCgJKY6Kis+Pt78rJOqDho0SD777DMSUwAAgHLkp59+KtH9tILSEX1Mf/31V1myZIk0bdq0wNszMjJMcUtPT7e9CwAAAD5hSdKCLVq0SPzJSmI6b948iY2NlaysLJN0hoeHy7Rp0wq8ry5VNXnyZBsPCwAAgHLEynRR/fv3l5UrV5p5rLR/6ZVXXikXXnhhgfdNSkqStLS03JKammpjFwAAAOxh8FNQWKkxrVq1au4orJkzZ0qXLl3kpZdeklGjRhXYH1ULAAAA4NcJ9rUZ/84775S77rpLjhw5Yjs8AABAYDBVVMD5ZeWnYcOGSUREhDzzzDP+CA8AAIByyC+JaWRkpFx//fXy8MMPy6FDh/zxEAAAAH4fle/vAsuJaUpKisydOzff9jvuuEN27txp+p8CAAAAAZ/HFAAAIOQFYslQakwD05QPAAAAhGyN6Sube0lEFd+nkYrIsbI7/8Q6GGEvmIg0/+CotVgnnrbRWqxF3U6yFqvu9KXWYmWN72MtVmYvu69lzindrMXq1szeXL7hze1dfq/e+c8ywzZUic4Um2ZuOdlarMie+8SJMmrbey2zl9exFuvhy18Vm25bXvCc12XRKGGPtViRX/whTrRtfV2r8dqM/c5arLYronyOcexgpvwizsDKT8FBjSkAAAAcwTE1pgAAAI5BH9OgoMYUAAAAjkBiCgAAAEegKR8AAMALg59CuMZ0165dMnr0aGnSpInExMRIfHy8DB48WL799lsb4QEAAFABWKkxvfDCC+XYsWPy8ssvS4sWLWTHjh2ycOFC2bPH3tQdAAAAAcPgp9BMTPfv3y9ff/21LF68WPr27Wu2NW3aVHr27Glj/wAAAFBB+NyUHxsba8rcuXMlIyOj2PvrfdLT0/MUAAAAR9aY+rvAbmIaGRkpKSkpphm/Ro0actJJJ8mdd94pq1atKvD+ycnJEhcXl1sSEhJ83QUAAACUA+G2+pj+/fff8sEHH8iQIUNMs/7xxx9vElZvSUlJkpaWlltSU+0txwgAAGBzVL6/C/w0j2mlSpXktNNOk7vvvluWLFkiiYmJMnHixHz301H71atXz1MAAAAAv02w36FDBzl06BBHGAAAhB76mIbmqHydEmrYsGEycuRI6dy5s1SrVk1WrFghDz/8sJx77rl29hIAAADlnpVR+SeeeKI88cQTcuqpp8pxxx1nmvOvuuoqmTZtmp29BAAACKAwlysgxZ8eeOAB6dOnj1SpUsUMUC/Ili1b5KyzzjL3qVevntx6662SlZUlIVtjqn1GdaS9FgAAADjDsWPHTKt279695aWXXsp3e3Z2tklKdcVOHR+0bds2ueKKKyQqKkoefPDB0F35CQAAAGXjPad7TEyMKb6aPHmy+b+gWZLUp59+KqtXr5bPP/9c6tevL127dpX77rtPbr/9dpk0aZJER0dLuRn8BAAAELICOPhJ53T3nOM9OUCt0EuXLpVOnTqZpNRt8ODBJlH+7bffpELXmA5r8qNUivV9dz5K7S+2ZFSvJDZFb9hmLdb+7CrWYsV8/L04UfXN2dZiRYXbi6XCM+3F+3FjU2uxIqLt7Vf4H5WtxTrYwe4Kb4ntllqL9eHATtZi2eyVNWjgT9ZiffXO8dZi3f1/l4lNbQdsthbrj121rcWqKs7UsPUuq/Ei2rayFqtRzM8+xziamSkVkc7p7jl9ZoyF2tKS2L59e56kVLl/19uCgRpTAACAIE6w7z2/e0wRiekdd9whYWFhRZa1a9eG7OvpmBpTAAAAFG38+PFmEaOitGjRQkpCBz0tX748z7YdO3bk3hYMJKYAAADePPqA+k0Z4tetW9cUG3S0vk4ptXPnTjNVlPrss89Mra0ulBQMJKYAAADl0JYtW2Tv3r3mf50aauXKlWZ7q1atzDz0p59+uklAL7/8crMwkvYrveuuu+S6664LWD9XbySmAAAAXjz7gPqLv+Pfc8898vLLL+f+3q1bN/P/okWLpF+/fhIRESHz5s2T0aNHm9rTqlWryogRI+Tee++VYPEpMdUOtkWZOHGimQcLAAAAgZWSklLoHKZuTZs2lY8//licwqfEVFcIcJs9e7bJzNetW5e7TauJAQAAQo5D+5iWdz4lpp4jtnRCWK1BDdYoLgAAAIS2gPcxzcjIMKWwZbgAAACCrTz0MQ1FAZ9gX5fZ8lx2S5fhAgAAAAKemCYlJUlaWlpu0WW4AAAAHMUVoILgNuXrvFjBmhsLAAAAzhXwGlMAAACgIEywDwAAUAAGJwUeNaYAAAAoX4lpYmKi7N+/31Y4AACA4HG5AlOQBzWmAAAAcAT6mAIAAHhhgv3goMYUAAAAjuCYGtMPJw6QyKhKPsf5a/QxsaV5/a1i09F/RVuLNf2WYdZi7Zhs7zRo+slBa7F2/uuotVjfX9RebEp9IMdarDqV7S3Le+RYlLVYx1rbe46H9lYWm97rUNdarM2z61mL1ezi7dZiffLLcdZinTh0rbVYqQdqiE3ZSXWsxcoaG2Et1tFzelqLVenD5dZiVR3yh9iUvbCxtVg9qvi+b4eys8UxAjEBPl1M86HGFAAAAI7gmBpTAAAApwjL+af4+zGQFzWmAAAAcARqTAEAALzRxzT0akz79esnN910U77tKSkpUqOG3Q7yAAAAKN9oygcAAIAj0JQPAADghQn2K0himpGRYYpberq9ORwBAAAQugLelJ+cnCxxcXG5JSEhIdC7AAAAUDSXKzAFwU1Mk5KSJC0tLbekpqYGehcAAABQ3pryq1evbpJLb/v37ze1oQWJiYkxBQAAwKnoYxqCNaZt27aVH3/8Md923damTRtfQgMAAKCC8SkxHT16tPz+++9yww03yKpVq2TdunXy+OOPyxtvvCHjx4+3t5cAAADBmGDf3wX2mvJbtGghX331lUyYMEEGDRokx44dk3bt2snbb78tQ4YM8SU0AAAAKhifp4s64YQT5NNPP7WzNwAAAA5AH9PgYOUnAAAAOAIrPwEAAHgLxDyjzGOaDzWmAAAAcATH1JiePvErqRQb5XOcr05vKbasH9tcbIo6EGYt1qjk+dZiLTiuujhRq32trMXq+MZGsSnsrPrWYv1+o73zLKzpYWuxWk06ZC3WluRssSlqcQNrsWrMrCpOVLPOAWux/thf21qsI4vrik27bjpoLVbbm7dZi5W1bbs4UdsVvn9Pevp8cw1rsaZH9/c5RuahYyKywcr+IDQ5JjEFAABwCgY/BQdN+QAAAHAEakwBAAC8BWICfCbYz4caUwAAADgCNaYAAABe6GMaYjWm55xzTqHLjn799dcSFhYmq1at8mXfAAAAUIGUOTEdNWqUfPbZZ7J169Z8t82aNUt69OghnTt39nX/AAAAAi/HFZgCO4np2WefLXXr1pWUlJQ82w8ePChvv/22SVwLkpGRIenp6XkKAAAAUObENDIyUq644gqTmLo8ltTSpDQ7O1uGDx9e4N8lJydLXFxcbklISOBVAAAAzhyV7+8Ce6PyR44cKRs3bpQvv/wyTzP+hRdeaJLOgiQlJUlaWlpuSU1N9WUXAAAAUE74lJi2a9dO+vTpIzNnzjS/b9iwwQx8KqwZX8XExEj16tXzFAAAACcJ8xiZ77cS7CdZHucx1SR0zpw5cuDAAVNb2rJlS+nbt6+dvQMAAECF4XNietFFF0l4eLi8/vrr8sorr5jmfZ0qCgAAIGTp+JlAFNidYD82NlYuvvhi03dUR9gnJib6GhIAAAAVkJUlSbU5f9++fTJ48GBp2LChjZAAAACoYKwsSdq7d+88U0YBAACEMpYkDeEaUwAAAMARNaYAAADlSiAmwKex2bmJ6YdP9ZeI6Eo+x6mxbanY0vzO7eJUn33Sy2K01eJEh9rUshbri+fqik11LJ5nLe5w5nmWbTFW0+viLUYTydxm75jVkG3iRHWHrhMnqinrrcaLbGDv3MiyeF441boemVbjJciv1mId6trB5xhZ2RlW9gWhyzGJKQAAgFOEuVym+PsxkBd9TAEAAOAI1JgCAAB4y/lv8Sd/xw9B1JgCAADAEagxBQAA8EIfU4fXmM6YMUOqVasmWVlZudsOHjwoUVFR0q9fvzz3Xbx4sYSFhcnGjRvt7i0AAADKrRInpv379zeJ6IoVK3K3ff311xIfHy/fffedHD16NHf7okWLpEmTJtKyZUv7ewwAABCoeUz9XVC2xLRt27bSoEEDUxvqpj+fe+650rx5c1m2bFme7ZrIFiQjI0PS09PzFAAAAKBUg5802dTaUDf9WZvx+/btm7v9yJEjpga1sMQ0OTlZ4uLicktCQgKvAgAAAEqfmH777bemn+mBAwfkp59+MknpqaeemluTunTpUlMrWlhimpSUJGlpabklNTWVlwEAADiLTn4fiIKyj8rX2tFDhw7J999/L/v27ZM2bdpI3bp1TXJ65ZVXmn6mmqC2aNHC9DEtSExMjCkAAABAmRPTVq1aSePGjU2zvSammpCqhg0bmib5JUuWmNsGDBhQmrAAAACOEub6p/j7MeDjBPvaRK+1olo8p4nS5vxPPvlEli9fXmgzPgAAAGBtgn1NOq+77jrJzMzMrTFV+vP1118vx44dIzEFAAChLRB9QOljaqfGVEfea7N+/fr18ySmOiDKPa0UAAAA4Nca02bNmomrgAy/adOmBW4HAAAINWE5/xR/PwZ8rDEFAAAAHFFjCgAAUO7Rx7RiJ6a1F/0pkeHRPsfJEnsiG8RbjCaStW27tVjhO/Zai+XUloRKHy63FityQHdrsRDcc18dG9zDWqy97X3/3HGLf3KJlHc2j72xYIXdeAiasCPHfI+R7XsMhDbHJKYAAACOocNm/D10hqE5+dDHFAAAAI5AYgoAAABHoCkfAADAS5jLZYo/+Tt+KKLGFAAAAKGfmGZnZ0ufPn3kggsuyLM9LS1NEhISZMKECb7uHwAAQPCmi/J3gb3ENCIiQlJSUmT+/Pny2muv5W4fO3as1KpVSyZOnOhLeAAAAFQgPvcxbdOmjUyZMsUkowMGDJDly5fLm2++Kd9//71ER9ubHxAAACBgXAGY6JsKU/8MftKk9L333pPLL79cfvnlF7nnnnukS5cuBd43IyPDFLf09HQbuwAAAIAQZ2XwU1hYmEyfPl0WLlwo9evXlzvuuKPQ+yYnJ0tcXFxu0b6oAAAAThyV7+8CP43KnzlzplSpUkU2bdokW7duLfR+SUlJZnCUu6SmptraBQAAAFT0xHTJkiXyxBNPyLx586Rnz54yatQocRVyFRATEyPVq1fPUwAAAJy3JKm/R+UH+0mWw8T08OHDkpiYKKNHj5b+/fvLSy+9ZAZAzZgxw84eAgAAoELwOTHVpnmtHdWR+apZs2by6KOPym233SabN2+2sY8AAACBxTymoZeYfvnll/LMM8/IrFmzTP9St2uuucZMvF9Ukz4AAABgbbqovn37SlZWVoG3LViwwJfQAAAAwaNzmIYF4DHgn1H5AAAAgC9ITAEAAFB+Vn6yIWv7DpGwKJ/jbHqzs9jSqHaa2PTnuhOtxWr74gFrsWTbdmuhItq2shZr/ci61mK1uH2p2LRjbB9rsdI6FtwdpixatLL3WmZmR1iLlbqljtjU/tF91mIdPMPuvtny+4yejjwvUnfaO19V21Xx1mKtvbWZtVitxi2TimDDq92sxXrsxLd9jnH4QLYstLdLPgnEBPhMsJ8fNaYAAABwBMfUmAIAADhuuih/PwbyoMYUAAAAjkCNKQAAgDdqTIOCGlMAAACEfmKqqzoNGjRIBg8enO+2Z599VmrUqCFbt2715SEAAAACjyVJQy8xDQsLM8uRfvfdd/Lcc8/lbt+0aZPcdttt8vTTT0vjxo1t7CcAAADKOZ+b8hMSEuSpp56SW265xSSkWos6atQoOf300+Xyyy+3s5cAAACBlBOgAvuDn0aMGCHvvfeejBw5Ui644AL59ddf5bfffivwvhkZGaa4paen29gFAAAAhDhro/Kff/556dixo3z11VcyZ84cqVu34FV7kpOTZfLkybYeFgAAwDpWfgrxUfn16tWTa665Rtq3by/nnXdeofdLSkqStLS03JKammprFwAAABDCrM5jGhkZaUpRYmJiTAEAAAA8McE+AACANybYDwom2AcAAIAjkJgCAAB4y3EFpvjRAw88IH369JEqVaqYRY+8/fzzzzJ8+HAz9WflypXNOCGdArTcJKaTJk2SlStX2gwJAACAMjh27JgMGzZMRo8eXeDtP/zwgxm8/uqrr5ppPidMmGAGqU+bNk2ChT6mAAAA5bCP6eT/Ts+ZkpJS4O06/7ynFi1ayNKlS+Xdd9+V66+/XoKBxBQAACCIvBcbigniDEY6lWetWrUkWOhjCgAAkM9/a0z9WfQx/ru8e1xcXG7RxYiCYcmSJTJ79my5+uqrJVgcU2Pae+lRqRSb7XOc9V9VFlv++qOq2FS78x5rsbqnrLEW6/uuEdZiZa/bYC2WK7KOtVgxX8aLTa537cWKrnnUWqxNf9s7Zq7D9j4e2rfdKjatn1jPWixX1jFxpDB7TXxblzWyFiu7QabY9Ptj9t6bEWFHpLzbmtTHarw6n9o7zz5v29HnGMcO6vn1i1Q0uthQ9erVc38vqrb0jjvukIceeqjIeGvWrJF27dqVah90Oflzzz1XJk6cKKeffrpIRU9MAQAAKmIfU01KPRPToowfP14SExOLvI/2FS2N1atXy8CBA01N6V133SXBRGIKAAAQIurWrWuKLToaf8CAATJixAgzvVSwkZgCAAB4M3OM+rnG1M/zmG7ZskX27t1r/s/Ozs6d0rNVq1YSGxtrmu81KR08eLCMGzdOtm/fbm6PiIiwmvyWBokpAABAOXTPPffIyy+/nPt7t27dzP+LFi2Sfv36yTvvvCO7du0y85hqcWvatKls3rw59EblL168WMLCwgot/fv3t7enAAAAKDGdv9TlcuUrmpS6F0Yq6PZgJaU+15jqMlfbtm3Lt/2DDz6Qa6+9VsaMGeNLeAAAgOBw5fxT/P0YsJeYRkdHS3x8fL4pCm655Ra58847zTJYAAAAQMD7mO7fv9/MgaVVxPfdd1+B98nIyDClsNUOAAAAgq4cLEkaiqyt/JSTkyOXXHKJREZGymuvvWb6mBZEVzPwXN1AVzsAAAAArCWm2nS/dOlSef/996VatWqF3i8pKcmsw+ouutoBAACAo+hUToEosN+U/+abb8qjjz4qH330kbRu3brI++oyW0UttQUAAICKyefEVCdrHTVqlEyZMsVM0AoAABDy6GMaeonp7t275bzzzjODnS677LLcFQPcgrlyAAAAACpQYqpN93/++acpDRo0yHd7MFcOAAAAKDOzIqm/R+X7N3yFG/w0YsSIAlcMcMLKAQAAAKjA85gCAACUC/QxDe3pogAAAABfUGMKAADgLUfXsc8JwGPAkYlp98qbpGqVCN8DnSrWxEYctRdMRGpEHLYW697Pz7cWS6baCxVxxF4l/L8HfmMt1uzV3cWmZ8a+YC1WamZta7He39nVWqzBdX+zFuukyhvEpgV1jrMW61/Vf7IW64YG/7IWK7HXt9ZiXVZjubVY27OriE1v7+tpLdZ5NX60Fuumsddai1X/6SXWYjVedFBsuvnV2dZiPdGqvc8xslyZVvYFoYumfAAAADiCY2pMAQAAHIPBT0FBjSkAAAAcgRpTAAAAb9SYBgU1pgAAAHAEakwBAAC85Zg1SQPwGPBEjSkAAAAqZo1pRkaGKW7p6emB3gUAAIAiuVw5pviTv+OHooDXmCYnJ0tcXFxuSUhICPQuAAAAwIECnpgmJSVJWlpabklNTQ30LgAAABQ/Kj/Hz0UfA8Ftyo+JiTEFAAAA8MSofAAAAG+mNtPPNZrUmObDqHwAAAA4AokpAAAAHIGmfAAAAG85OSJhfp7Oiemi/FNjumXLFomNjS206O0AAACA32tMGzZsKCtXrizydgAAgJDB4KfQTUwjIyOlVatWZfpb139HpB0+mG1jV+TokUyxJTIiS2w6YjFezpGj1mKJxZaKsKP2ui1nHLT3WuYctni8ROTQATvnqzqSZe+8yDx0zFqsI5Xt7dfBLLvNYUcP2Ts3DlpsqsvKOebI8/9ghL3neCjb7mt5zOLzPBRh732ZnWHvMyPLZe85Spbdz7LDFj/LbDzPLMnMkxug4glzBfnV37p1K6s/AQCAXLr4TuPGjYNyRHSpdF2ZckCVf0tkWLRfHyvLdUy+OPymWXCoevXqfn2sUBH0wU/azK8nYLVq1SQsLKzIE0WXL9X7+vriVYRYTt43YnHMOC94j/N54Z/PxFD/jNW6sgMHDtAFsAILemIaHh5eqqsiPZltXVVUhFi24xEreMeL48/x4rzgc6wifF5obaUj0Mc0KJjHFAAAAI4Q9BpTAAAAx8lx6Ugc/z4Gg7xCt8Y0JiZGJk6caP4nFsesIp0XTt43YgXveHH8OV4V+bxA+RX0UfkAAABOkTsqP3qYRIZF+fWxdIqtL469zaj8UKwxBQAAQPlGH1MAAAAvrhyXuPzcx5RG6/yoMQUAIAT9/fffEup0kZ2cHLuriSG0kZgCABCCOnbsKK+//rqEsg4dOsjmzZuDvRtwkJBsyv/111/luOOOC/ZuAHLBBRcUexQiIyMlPj5eTjvtNDnnnHOsHLWDBw9KbGwsr0ABdu/ebf6vU6eOI/ctOjq63Cw9eO+998ott9wiVapUkfL8HbFp0yZp3ry5OM0DDzwg11xzjbz33nvy3HPPSa1atSTUOLop26U1uTkBeAyEZI2pLlH2/PPPS8+ePaVLly5B2YcvvvjCXN3piD1vus6tXr1+/fXXEur++OMPax8WR44ckXnz5uX+npSUJOPGjcstt956qxw9erREsfS4l6QEko7cLK5UrlxZ1q9fLxdffLHcc889xcZ84oknin0vDB482Foz2tVXXy2hbv/+/XLdddeZZLR+/fqm6M/XX3+9ua00tFnxoYcekpNOOklOOOEEueOOO8x5bGvfatasaS5U9L1w+PBhsamk+7l06dI870v1yiuvmOSrXr165pzIyMgoNs7kyZPNRZLTdO7cWU488UR54YUXzPvFVy1btjTHZuTIkfJ///d/5n1TVnfffbdkZWUVevuWLVvMRWxJjBkzRlatWiV79uwx300ffvhhmfdr4MCB8u677xZ5UdWiRYsyxwfKzXRRX331lbz00ksyZ84cs3au1lBdeOGF5gujtPTNW7t2bfOzrtWrH1r6QT506FA55ZRTiv17vV///v3l5ptvLvD2qVOnyqJFi8zVa2m+BFNSUswHgjZnhIWFmQ/Af/3rX3L55Zeb30vizDPPlDfeeCN3KbcpU6bItddeKzVq1Mh97vocV69eXWysiIgI2bZtm/mCUppQ6XPTL9XSmjFjhnz00Ue5H5jVqlUzCbwma2rt2rVy2223FXpMvZevLep46Kmst2dnZ1ur7VRFfViXhiYC+kWiXzxF0WOjtR9XXHFFvtsOHTokp59+unk99dj56ueff5bjjz++RMdMv5RLYubMmT6/lkpvL+oL3G3v3r3Su3dv+euvv+TSSy+V9u3bm+16rmszp67NvWTJEpMQlsR9990nkyZNkkGDBpnXYsGCBTJ8+PASPa/S7lu7du3km2++McnFsmXL5IYbbpCy0CRy2rRp8sgjj8j27duLvf8ZZ5wh/fr1k9tvv938/ssvv5jzIDEx0eyjxtGaOD0Oxb2O+njuzwpf6WtU0Hmhn2tt2rQxtbMlSdq0gmDWrFnyzjvvmM9Y/c74z3/+U6LP+YIsXrw4t3z33Xdy7Ngxk6QNGDDAfCdoKennY5MmTcz3kCa43rW6+r7Xi3W9KPrkk09KtY/6+uvnqL5+2krj6ccffyz27/W11DJhwgRzweFtx44d5ju4pJ+vJaXfCfo55KSk1z1dVL+w8wMyXdRi13tMF+X0pnz9oNNkTRNSPUEuuugi88E7d+5cc1VYWvqhq02omoy2bt1a3nzzTRkyZIj5ktc3otZQ6QfYeeedV2QcffNoTUphNGF49NFHS7xfmkhpsvvxxx+bWuBOnTqZbWvWrDFfEJoQ6XMuCf3y9KzhePDBB81xcyem+gW/bt26Eu+XJ92/5ORkKYvXXnvNJJ6e9AvZ/SH06quvyjPPPFOixFSTfs991GT8xRdflEaNGpVp3wK9HvPJJ58sPXr0KPZ++oWlFyX62un54abnq9aU7tq1S7788ksJNH1PNm3aVLp16+ZzjXpRF29am6cXQiUdEKHNydo8vnHjxnzJgd6m70v9v7iaaM+aw2effdYkZurzzz+Xs846y5xr+nlRGiXZN32tP/30U/Oci6Lvb00UP/vsMxNT31f6maUJmCYTekFZkveRWrlypUnA3fQz0V3DqDSZ14nQi0tMVUkvnkviySefLLTW+YcffpCzzz7bfFYX1yVGE1AtTz/9tLz11lvm3O3bt6+0atVKRo0aJSNGjDC11iWlSbwWpS08eqHjTlRffvllyczMNBcZv/32W4m6GWhNvn4W6DHWiwOtgdULv++//958h5S2FePPP/803xea2J977rn5EtOSmj59ukn+9UJJP5urVq1apjiAT1wOc/bZZ7uqV6/uGj58uGvevHmurKwssz0yMtL122+/lSnmkCFDTNxvvvnGdc0117gaNWrkGjlypCs7O9uUMWPGuE488cRi48TExLjWr19f6O16W6VKlUq8XzNnznRVq1bN9cUXX+S7beHChea2l19+uUSxwsLCXDt27Mj9PTY21rVx48bc37dv3+4KDw+3Eqs04uPjXZs2bcr9vU6dOnl+X7dunXm9y8KX/XK6F154wVWlShXXokWLzO8HDx50nXzyya5WrVq5/vrrL2uPs3LlyhKfF/o+qVmzpqtr166up556yrVnzx6XTWvXrnWdd955roiICNcVV1zh2rx5c4n+rmnTpq758+cXevsnn3xi7lNS0dHRri1btuR776emppY4Rmn2Td9vkyZNKjbWbbfd5oqLi3NdeOGFrgYNGpjPxKuuusrVqVMn1xtvvJH7WVkS+nw8n+NJJ53kuv/++3N/1/eovr+Ko/teo0YNc14UVWx57LHHXL179y7T3+rn85133ulKSEhwRUVFuc455xyf9iUjI8N8dt96663mM6yk7yO3uXPnuurXr+/q0qWL+ftBgwaV+Jz39Pzzz5vvivPPP9+1c+dOV1m5P/dXr17tat26teu4444r83dIaei+O+1zPC0tTa+8Xf3kXNegsH/5tehj6GPpY+Ifjqsx1eYLbc4aPXq0qd20Qa9CtX+o9jvSmkntq6pNqu7aj7Fjx0qvXr2KjaM1c3q1q1fdBdGrzAYNGpR4v7Tp/c477zTNQN60iUj7tmmNY0FNuv6kNSDetSBlrRXRmg7Pmlyt7fOktWIl6ctW0WizozYDa+3H+++/b/qm6tQwWlOqzWnBoDXbjz/+uKmZ0WZt7SOpNYlaA6U1f2U9R/R5ac2R1jxpjbDW5pVm4Ip2O9HuIYXRWCVp3nbT1oVKlSrl2RYVFWVqxUqrJPumn0P6/Ivz9ttvm9pcrUXXzyH9PNN91Zac0h57rb3VAT1aM6rN0trU69l8q/0y9TmXhP5doFoftMb0/vvvL9Pf6ue2ft5qrb+eu9rFqDT0OGl3C225cTfp6/E79dRTTTO61siWhn7naCvZwoULTc3kXXfdZfatNLTlb/ny5ebxbX1PaFcA/c7U7ivaZW727NmmW4u/OLk3YZZkirgC8BjIw3GJqfa30ib87t27mzeINnP9+9//9immfsG7m210JLN+CHj2N9OfS9JBXpuOteO6fhh4f3FpX1X9ctEPzpLSRPbhhx8ush9Ycc17/kgm9YNCuxK41zPWpivtr+rdrFOSvpeNGzc2X6Jt27Yt9BjofZCfNtXquauDEpo1a2a+DEt7rIrrR1vagUF6TugXlhZtPtQmUr3I0wRJmzFLM1OADhjULifa3Nq1a1fzBV2WPoA6qEj7Zxd2bDQBK81oZe/zv7D3QEnO/5LsW0n7Z2pzr34uuhNa3T9tui/L+1w/y/TCV7smaXchHVXveez1fakDfkpCP59t9TEtjl7EajeGsoxV0IspHaugFwLazUkvqEpKKwo0EdX+/5qAajcP7ZJUmooI70oJbc7X8167bul3nl7c6XtJu015f78URvt7+uMzVC80NHHXBF7PFT1PLrnkEvEH7W8drIvtwug5pjnDN9s/Dsjj6WOV5bwurxyXmOpVpBbta6RXavphoqO3tWZN+1bpFap2li4tG0mbXtHql5F2wtcPFXeypYNQtDZJPyS0r1dJadJRVId5vW3fvn1WksnS1Epq/ytPl112mZSVfqhpbZ/WrBWUzGtti95WVjb7tzmFdzKpNVea4Nx44415tpckMSquJktvL2tNi3sAk557pR0QoRdk+mWnH8j6Ja01w2Wltaz6vnP3vfSk5737YrKs578v7wGb+6bH2DOG9iMs65Rh2r9UzzNNsjSG1lZ7xtbPXU2UnPb+0wROk7mS1sTrhZOWDRs2SJ8+fcyFvialpe07qYOpNAnVBFX7mupxcw+kLS0diKVjAjQB1dY69/tB+wtfeeWVpk+/7rMOmiuOnle2FPQdqYNo9XhrC462OvqDfqc7jX5X6UWj1pIHgr73SnoxUhE4flS+0kE7+oGkg0K0hkdHZX7wwQel+gLV2kd30qYjxPUDxjNpmz9/fom+XLWWSLsZ6AeL+9DpG1i/gDQ5Lc1cdzpYQZsY69atW+DtpRkFqR9oJaEDJQJJn4N+sOkbT5N5Terdr6k2P2lN208//VSiEa3eCZv362h7FH2wOPW1dL9X3E352rqhLQS6v5pclWZgkN5XR7xrE6G+DwpTktdSaxJ1IIm+v3VaJh2E4h5EqIOYdJ9XrFgRlC/AkuybNpvqSG1fP8fKcv5rrbUmpt6vgV406/bianFsj8rXSojC9lO7G/z++++m9tNdc1wYPU46aE0v6PTCSwcWFdZqUxI68FCTU2210KZ87W6in2WaoLoT1cI+x73piHtNPAvqqqYX61qTrYOQApUUleS11OeribMOILY9Kh8IycTUTd8Q+mGsX4qlSUz98UWvNZl6Fa6HTz9gSjoVTVFfNN5KkzA7mV55ajKvV/eeybxeYOiXc0mnCXFywlYRaDOjjt7WBE+/6HX6o7JOYq+1+yWpbSvpa6nnmO6fjm73Psf0AqiwfuGBYGvfKsL5X1B/e6ULEmhiqZ8jJbn413642lSvF05FXfiUlXb90gszd39T7eer3wPabak42vpX3EWcJt/adzWQtP+6Js2FjejXKeq0eT/QYx5Q8YRUYlreVIQvGu9aGE3mlX4Zh+IqJRWZfplqzZ5OF1VUUhnMGmu9YNTFDJx4jjl531A6mlxqTbcmplo0SdXuU6FeiQA4AYkpgKDUcgKhlIhqdxB3U/63335rmvd1phb3BPtaSjuqHkB+JKYAABRBuxJoIqqD9dxJqPYtLenMBQBKjsQUAIAi6FKhmoy6B28C8B8SUwAAADhC6RZ+BgAAAPyExBQAAACOQGIKAAAARyAxBQAAgCOQmAIAAMARSEwBAADgCCSmAAAAECf4f9Jh1IVx4uyFAAAAAElFTkSuQmCC"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=dbc4aff2">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Kr?tk?-uk?zka-kryptoanal?zy">Kr?tk? uk?zka kryptoanal?zy<a class="anchor-link" href="#Kr?tk?-uk?zka-kryptoanal?zy">¶</a></h2><p>Uk?zka pou??v? u?itelsk? soubor <code>text_1000_sample_1_ciphertext.txt</code>. Aby notebook z?stal rychl?, b??? zde pouze kr?tk? demonstra?n? po?et iterac?. Fin?ln? v?sledky v <code>outputs/</code> vznikly skriptem s <code>20 000</code> iteracemi.</p>
+<h2 id="V?sledek-benchmarku">V?sledek benchmarku<a class="anchor-link" href="#V?sledek-benchmarku">¶</a></h2><p>Nejd?le?it?j?? nam??en? v?sledky pro zn?m? u?itelsk? kontroln? vzorek:</p>
+<table>
+<thead>
+<tr>
+<th>Strategie</th>
+<th>Matice</th>
+<th style="text-align:right">Pr?m?r</th>
+<th style="text-align:right">Minimum</th>
+<th style="text-align:right">P?esn? b?hy</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1 x 20 000</td>
+<td>combined</td>
+<td style="text-align:right">94,80 %</td>
+<td style="text-align:right">92,20 %</td>
+<td style="text-align:right">1/3</td>
+</tr>
+<tr>
+<td>1 x 20 000</td>
+<td>krakatit</td>
+<td style="text-align:right">93,60 %</td>
+<td style="text-align:right">90,00 %</td>
+<td style="text-align:right">1/3</td>
+</tr>
+<tr>
+<td>2 x 10 000</td>
+<td>krakatit</td>
+<td style="text-align:right">100,00 %</td>
+<td style="text-align:right">100,00 %</td>
+<td style="text-align:right">3/3</td>
+</tr>
+<tr>
+<td>5 x 4 000</td>
+<td>krakatit</td>
+<td style="text-align:right">100,00 %</td>
+<td style="text-align:right">100,00 %</td>
+<td style="text-align:right">3/3</td>
+</tr>
+</tbody>
+</table>
+<p>Vybr?na byla strategie <code>2 x 10 000</code>, proto?e m?la stejnou p?esnost jako <code>5 x 4 000</code>, byla m?rn? rychlej?? a jej? konfigurace je jednodu???. Teacher plaintext a key byly pou?ity pouze pro n?sledn? vyhodnocen? benchmarku, ne b?hem hled?n?.</p>
+<p>Tento v?sledek nen? univerz?ln? garance 100 % p?esnosti na v?ech nezn?m?ch textech.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=cell-12">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=048af4c2">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [6]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">sample_ciphertext_path</span> <span class="o">=</span> <span class="n">PROJECT_ROOT</span> <span class="o">/</span> <span class="s1">'data'</span> <span class="o">/</span> <span class="s1">'ciphertexts'</span> <span class="o">/</span> <span class="s1">'text_1000_sample_1_ciphertext.txt'</span>
-<span class="n">sample_ciphertext</span> <span class="o">=</span> <span class="n">sample_ciphertext_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s1">'utf-8'</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">benchmark_csv</span> <span class="o">=</span> <span class="n">PROJECT_ROOT</span> <span class="o">/</span> <span class="s1">'reports'</span> <span class="o">/</span> <span class="s1">'search_strategy_benchmark.csv'</span>
+<span class="n">benchmark_md</span> <span class="o">=</span> <span class="n">PROJECT_ROOT</span> <span class="o">/</span> <span class="s1">'reports'</span> <span class="o">/</span> <span class="s1">'search_strategy_benchmark.md'</span>
 
-<span class="n">demo_key</span><span class="p">,</span> <span class="n">demo_plaintext</span><span class="p">,</span> <span class="n">demo_score</span> <span class="o">=</span> <span class="n">prolom_substitute</span><span class="p">(</span>
-    <span class="n">sample_ciphertext</span><span class="p">,</span>
-    <span class="n">TM_ref</span><span class="p">,</span>
-    <span class="nb">iter</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>
-    <span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-    <span class="n">progress_every</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Benchmark Markdown existuje:'</span><span class="p">,</span> <span class="n">benchmark_md</span><span class="o">.</span><span class="n">exists</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Benchmark CSV existuje:'</span><span class="p">,</span> <span class="n">benchmark_csv</span><span class="o">.</span><span class="n">exists</span><span class="p">())</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="s1">'D?lka ciphertextu:'</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">sample_ciphertext</span><span class="p">))</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">'Demo sk?re:'</span><span class="p">,</span> <span class="n">demo_score</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">'Uk?zka plaintextu:'</span><span class="p">,</span> <span class="n">demo_plaintext</span><span class="p">[:</span><span class="mi">120</span><span class="p">])</span>
+<span class="k">if</span> <span class="n">benchmark_csv</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+    <span class="k">with</span> <span class="n">benchmark_csv</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s1">'utf-8'</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s1">''</span><span class="p">)</span> <span class="k">as</span> <span class="n">handle</span><span class="p">:</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">csv</span><span class="o">.</span><span class="n">DictReader</span><span class="p">(</span><span class="n">handle</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">'Po?et benchmark ??dk?:'</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">rows</span><span class="p">:</span>
+        <span class="n">best</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">row</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">'matching_percent'</span><span class="p">]))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">'Nejlep?? ??dek:'</span><span class="p">,</span> <span class="n">best</span><span class="p">[</span><span class="s1">'strategy'</span><span class="p">],</span> <span class="n">best</span><span class="p">[</span><span class="s1">'matrix'</span><span class="p">],</span> <span class="n">best</span><span class="p">[</span><span class="s1">'matching_percent'</span><span class="p">])</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=cell-13">
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>Benchmark Markdown existuje: True
+Benchmark CSV existuje: True
+Po?et benchmark ??dk?: 30
+Nejlep?? ??dek: 1x20000 krakatit 100.0
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=fc479f40">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Porovn?n?-s-u?itelsk?m-p??kladem">Porovn?n? s u?itelsk?m p??kladem<a class="anchor-link" href="#Porovn?n?-s-u?itelsk?m-p??kladem">¶</a></h2><p>U?itelsk? p??klad pro <code>text_1000_sample_1</code> je ulo?en ve slo?ce <code>data/teacher_example/</code>. Fin?ln? v?stup ze skriptu je v <code>outputs/</code>.</p>
+<h2 id="Fin?ln?-v?sledky-z-outputs/">Fin?ln? v?sledky z <code>outputs/</code><a class="anchor-link" href="#Fin?ln?-v?sledky-z-outputs/">¶</a></h2><p>Notebook pouze na??t? existuj?c? v?stupy. Pokud jste je?t? nespustili fin?ln? de?ifrov?n?, spus?te <code>run.bat</code> nebo p??kaz <code>python scripts\decrypt_samples.py --matrix data\processed\TM_ref_krakatit.npy --iterations 10000 --restarts 2</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=cell-14">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=ca8ec560">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [7]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">teacher_plaintext</span> <span class="o">=</span> <span class="p">(</span><span class="n">PROJECT_ROOT</span> <span class="o">/</span> <span class="s1">'data'</span> <span class="o">/</span> <span class="s1">'teacher_example'</span> <span class="o">/</span> <span class="s1">'text_1000_sample_1_plaintext.txt'</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s1">'utf-8'</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-<span class="n">teacher_key</span> <span class="o">=</span> <span class="p">(</span><span class="n">PROJECT_ROOT</span> <span class="o">/</span> <span class="s1">'data'</span> <span class="o">/</span> <span class="s1">'teacher_example'</span> <span class="o">/</span> <span class="s1">'text_1000_sample_1_key.txt'</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s1">'utf-8'</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-<span class="n">output_plaintext</span> <span class="o">=</span> <span class="p">(</span><span class="n">PROJECT_ROOT</span> <span class="o">/</span> <span class="s1">'outputs'</span> <span class="o">/</span> <span class="s1">'text_1000_sample_1_plaintext.txt'</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s1">'utf-8'</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-<span class="n">output_key</span> <span class="o">=</span> <span class="p">(</span><span class="n">PROJECT_ROOT</span> <span class="o">/</span> <span class="s1">'outputs'</span> <span class="o">/</span> <span class="s1">'text_1000_sample_1_key.txt'</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s1">'utf-8'</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">outputs_dir</span> <span class="o">=</span> <span class="n">PROJECT_ROOT</span> <span class="o">/</span> <span class="s1">'outputs'</span>
+<span class="n">plaintext_files</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">outputs_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s1">'*_plaintext.txt'</span><span class="p">))</span> <span class="k">if</span> <span class="n">outputs_dir</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="k">else</span> <span class="p">[]</span>
+<span class="n">key_files</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">outputs_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s1">'*_key.txt'</span><span class="p">))</span> <span class="k">if</span> <span class="n">outputs_dir</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="k">else</span> <span class="p">[]</span>
 
-<span class="n">matching_chars</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">output_plaintext</span><span class="p">,</span> <span class="n">teacher_plaintext</span><span class="p">)</span> <span class="k">if</span> <span class="n">a</span> <span class="o">==</span> <span class="n">b</span><span class="p">)</span>
-<span class="n">matching_percent</span> <span class="o">=</span> <span class="n">matching_chars</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">teacher_plaintext</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Plaintext soubory:'</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">plaintext_files</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Key soubory:'</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">key_files</span><span class="p">))</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="s1">'Plaintext p?esn? sed?:'</span><span class="p">,</span> <span class="n">output_plaintext</span> <span class="o">==</span> <span class="n">teacher_plaintext</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">'Spr?vn? znaky:'</span><span class="p">,</span> <span class="n">matching_chars</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">'Procento shody:'</span><span class="p">,</span> <span class="n">matching_percent</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">'Key p?esn? sed?:'</span><span class="p">,</span> <span class="n">output_key</span> <span class="o">==</span> <span class="n">teacher_key</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">'Nalezen? key je validn? d?lky:'</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">output_key</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">ALPHABET</span><span class="p">))</span>
+<span class="n">sample_plaintext_path</span> <span class="o">=</span> <span class="n">outputs_dir</span> <span class="o">/</span> <span class="s1">'text_1000_sample_1_plaintext.txt'</span>
+<span class="n">sample_key_path</span> <span class="o">=</span> <span class="n">outputs_dir</span> <span class="o">/</span> <span class="s1">'text_1000_sample_1_key.txt'</span>
+
+<span class="k">if</span> <span class="n">sample_plaintext_path</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="n">sample_key_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+    <span class="n">sample_plaintext</span> <span class="o">=</span> <span class="n">sample_plaintext_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s1">'utf-8'</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="n">sample_key</span> <span class="o">=</span> <span class="n">sample_key_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s1">'utf-8'</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">'Uk?zka plaintextu:'</span><span class="p">,</span> <span class="n">sample_plaintext</span><span class="p">[:</span><span class="mi">200</span><span class="p">])</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">'D?lka key:'</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">sample_key</span><span class="p">))</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">'V?stup pro text_1000_sample_1 zat?m nen? k dispozici.'</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=cell-15">
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>Plaintext soubory: 60
+Key soubory: 60
+Uk?zka plaintextu: _VOZEM_DO_NEHO_A_ZAS_MNE_BEZI_DO_CESTY__ZACHVELA_SE_TAK_KUDY_VPRAVO_NEBO_VLEVO_TEDY_JE_KONEC_PTAL_SE_TISE_POKYVLA_HLAVOU_TEDY_JE_KONEC_OTEVREL_DVIRKA_VYSKOCIL_Z_VOZU_A_POSTAVIL_SE_PRED_KOLA_JED_REKL_C
+D?lka key: 27
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=45740d2b">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Souhrn-vyhodnocen?">Souhrn vyhodnocen?<a class="anchor-link" href="#Souhrn-vyhodnocen?">¶</a></h2><p>Skript <code>scripts/evaluate_outputs.py</code> vytvo?il soubory:</p>
-<ul>
-<li><code>reports/evaluation_summary.md</code></li>
-<li><code>reports/evaluation_summary.csv</code></li>
-</ul>
-<p>Tabulka obsahuje d?lku textu, sample ID, n?zvy v?stupn?ch soubor?, validitu kl??e, plausibility sk?re a porovn?n? s u?itelsk?m p??kladem tam, kde je zn?m? plaintext.</p>
+<h2 id="Vyhodnocen?-zn?m?ho-teacher-sample">Vyhodnocen? zn?m?ho teacher sample<a class="anchor-link" href="#Vyhodnocen?-zn?m?ho-teacher-sample">¶</a></h2><p>Soubor <code>data/teacher_example/text_1000_sample_1_plaintext.txt</code> slou?? pouze pro vyhodnocen? kvality v?sledku. B?hem de?ifrov?n? nen? algoritmu dostupn?.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=cell-16">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=1cfde74b">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [8]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">teacher_plaintext_path</span> <span class="o">=</span> <span class="n">PROJECT_ROOT</span> <span class="o">/</span> <span class="s1">'data'</span> <span class="o">/</span> <span class="s1">'teacher_example'</span> <span class="o">/</span> <span class="s1">'text_1000_sample_1_plaintext.txt'</span>
+<span class="n">teacher_key_path</span> <span class="o">=</span> <span class="n">PROJECT_ROOT</span> <span class="o">/</span> <span class="s1">'data'</span> <span class="o">/</span> <span class="s1">'teacher_example'</span> <span class="o">/</span> <span class="s1">'text_1000_sample_1_key.txt'</span>
+
+<span class="k">if</span> <span class="n">teacher_plaintext_path</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="n">sample_plaintext_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+    <span class="n">teacher_plaintext</span> <span class="o">=</span> <span class="n">teacher_plaintext_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s1">'utf-8'</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="n">output_plaintext</span> <span class="o">=</span> <span class="n">sample_plaintext_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s1">'utf-8'</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="n">matching_chars</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">a</span> <span class="o">==</span> <span class="n">b</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">output_plaintext</span><span class="p">,</span> <span class="n">teacher_plaintext</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">'Shodn? znaky:'</span><span class="p">,</span> <span class="n">matching_chars</span><span class="p">,</span> <span class="s1">'/'</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">teacher_plaintext</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">'Shoda [%]:'</span><span class="p">,</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">matching_chars</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">teacher_plaintext</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">'Plaintext p?esn?:'</span><span class="p">,</span> <span class="n">output_plaintext</span> <span class="o">==</span> <span class="n">teacher_plaintext</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">'Teacher sample nebo v?stup zat?m nen? k dispozici.'</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">teacher_key_path</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="n">sample_key_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+    <span class="n">teacher_key</span> <span class="o">=</span> <span class="n">teacher_key_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s1">'utf-8'</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="n">output_key</span> <span class="o">=</span> <span class="n">sample_key_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s1">'utf-8'</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">'Key p?esn?:'</span><span class="p">,</span> <span class="n">output_key</span> <span class="o">==</span> <span class="n">teacher_key</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>Shodn? znaky: 1000 / 1000
+Shoda [%]: 100.0
+Plaintext p?esn?: True
+Key p?esn?: False
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=a77c947b">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [9]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">evaluation_csv</span> <span class="o">=</span> <span class="n">PROJECT_ROOT</span> <span class="o">/</span> <span class="s1">'reports'</span> <span class="o">/</span> <span class="s1">'evaluation_summary.csv'</span>
-<span class="k">with</span> <span class="n">evaluation_csv</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s1">'utf-8'</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s1">''</span><span class="p">)</span> <span class="k">as</span> <span class="n">handle</span><span class="p">:</span>
-    <span class="n">rows</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">csv</span><span class="o">.</span><span class="n">DictReader</span><span class="p">(</span><span class="n">handle</span><span class="p">))</span>
-
-<span class="n">teacher_row</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">row</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span> <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="s1">'length'</span><span class="p">]</span> <span class="o">==</span> <span class="s1">'1000'</span> <span class="ow">and</span> <span class="n">row</span><span class="p">[</span><span class="s1">'sample_id'</span><span class="p">]</span> <span class="o">==</span> <span class="s1">'1'</span><span class="p">)</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="s1">'Po?et vyhodnocen?ch v?stup?:'</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">))</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">'Teacher sample row:'</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">teacher_row</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'  </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">evaluation_csv</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+    <span class="k">with</span> <span class="n">evaluation_csv</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s1">'utf-8'</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s1">''</span><span class="p">)</span> <span class="k">as</span> <span class="n">handle</span><span class="p">:</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">csv</span><span class="o">.</span><span class="n">DictReader</span><span class="p">(</span><span class="n">handle</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">'Po?et ??dk? ve vyhodnocen?:'</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">))</span>
+    <span class="n">teacher_rows</span> <span class="o">=</span> <span class="p">[</span><span class="n">row</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span> <span class="k">if</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'length'</span><span class="p">)</span> <span class="o">==</span> <span class="s1">'1000'</span> <span class="ow">and</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'sample_id'</span><span class="p">)</span> <span class="o">==</span> <span class="s1">'1'</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">teacher_rows</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">'??dek teacher sample:'</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">teacher_rows</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'  </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">'evaluation_summary.csv zat?m neexistuje.'</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=cell-17">
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>Po?et ??dk? ve vyhodnocen?: 60
+??dek teacher sample:
+  length: 1000
+  sample_id: 1
+  plaintext_file: text_1000_sample_1_plaintext.txt
+  key_file: text_1000_sample_1_key.txt
+  plaintext_length: 1000
+  key_valid: True
+  plausibility: -5208.504696
+  matches_teacher_example: True
+  matching_chars: 1000
+  matching_percent: 100.000000
+  key_matches_teacher_example: False
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=2a09eb9f">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Uk?zka-exportovan?ch-soubor?">Uk?zka exportovan?ch soubor?<a class="anchor-link" href="#Uk?zka-exportovan?ch-soubor?">¶</a></h2><p>V?stupy jsou ukl?d?ny samostatn? jako plaintext a key soubor. N?zvy dodr?uj? form?t po?adovan? v zad?n?.</p>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=cell-18">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">((</span><span class="n">PROJECT_ROOT</span> <span class="o">/</span> <span class="s1">'outputs'</span><span class="p">)</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s1">'text_1000_sample_1_*.txt'</span><span class="p">)):</span>
-    <span class="n">content</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s1">'utf-8'</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s1">'-&gt; d?lka'</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">content</span><span class="p">))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">content</span><span class="p">[:</span><span class="mi">120</span><span class="p">])</span>
-    <span class="nb">print</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=cell-19">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Z?v?r">Z?v?r<a class="anchor-link" href="#Z?v?r">¶</a></h2><p>Projekt ?sp??n? zpracoval v?ech <code>60</code> u?itelsk?ch ciphertext?. Fin?ln? b?h pou??v? <code>20 000</code> iterac? na ka?d? ciphertext a v?sledky ukl?d? do slo?ky <code>outputs/</code>.</p>
-<p>Pro u?itelsk? sample <code>text_1000_sample_1</code> fin?ln? plaintext sed? p?esn?: <code>1000 / 1000</code> znak?, tedy <code>100 %</code>. Key soubor je validn? permutace abecedy; nen? textov? toto?n? s u?itelsk?m key souborem, proto?e n?kolik znak? se v tomto konkr?tn?m ciphertextu nevyskytuje a nejsou z n?j jednozna?n? ur?iteln?.</p>
+<h2 id="Omezen?">Omezen?<a class="anchor-link" href="#Omezen?">¶</a></h2><p>Metropolis-Hastings je n?hodn? algoritmus a r?zn? seedy mohou d?t r?zn? v?sledky. Krat?? texty jsou obt??n?j??, proto?e obsahuj? m?n? bigram?. N?kter? znaky se v ciphertextu nemus? objevit, tak?e cel? kl?? nemus? b?t jednozna?n? ur?iteln?. Bigramov? model hodnot? jazykovou pravd?podobnost, nikoli skute?nou znalost spr?vn?ho plaintextu.</p>
 </div>
 </div>
 </div>
