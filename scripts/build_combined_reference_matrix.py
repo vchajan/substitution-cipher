@@ -1,4 +1,4 @@
-"""Build a reference bigram matrix from one or more cleaned Czech texts."""
+"""Vytvoření referenční bigramové matice z jednoho nebo více čistých textů."""
 
 from __future__ import annotations
 
@@ -30,7 +30,7 @@ OUTPUT_PATH = PROJECT_ROOT / "data" / "processed" / "TM_ref.npy"
 
 @dataclass(frozen=True)
 class ReferenceMatrixStats:
-    """Summary of one standalone reference matrix build."""
+    """Souhrn vytvoření jedné samostatné referenční matice."""
 
     text_length: int
     bigram_count: int
@@ -41,13 +41,13 @@ class ReferenceMatrixStats:
 
     @property
     def contains_zeros(self) -> bool:
-        """Return whether the matrix contains at least one zero."""
+        """Vrátí informaci, zda matice obsahuje alespoň jednu nulu."""
         return self.zero_count > 0
 
 
 @dataclass(frozen=True)
 class CombinedReferenceStats:
-    """Summary of the combined reference matrix build."""
+    """Souhrn vytvoření kombinované referenční matice."""
 
     reference_count: int
     text_lengths: tuple[int, ...]
@@ -65,12 +65,12 @@ class CombinedReferenceStats:
 
     @property
     def contains_zeros(self) -> bool:
-        """Return whether the final matrix contains at least one zero."""
+        """Vrátí informaci, zda finální matice obsahuje alespoň jednu nulu."""
         return self.zero_count > 0
 
 
 def _read_clean_text(path: Path) -> str:
-    """Read and validate one cleaned reference text file."""
+    """Načte a zkontroluje jeden vyčištěný referenční text."""
     text = path.read_text(encoding="utf-8").strip()
     validate_clean_text(text)
     return text.strip("_")
@@ -80,7 +80,7 @@ def build_reference_matrix_from_clean_text(
     text: str,
     output_path: str | Path,
 ) -> ReferenceMatrixStats:
-    """Build and save one reference matrix from already cleaned text."""
+    """Vytvoří a uloží jednu referenční matici z již vyčištěného textu."""
     cleaned_text = text.strip("_")
     validate_clean_text(cleaned_text)
 
@@ -104,7 +104,7 @@ def build_single_reference_matrix(
     clean_text_path: str | Path,
     output_path: str | Path,
 ) -> ReferenceMatrixStats:
-    """Read one clean text file and save its reference matrix."""
+    """Načte jeden čistý textový soubor a uloží jeho referenční matici."""
     return build_reference_matrix_from_clean_text(
         text=_read_clean_text(Path(clean_text_path)),
         output_path=output_path,
@@ -120,7 +120,7 @@ def build_combined_reference_matrix(
     valka_matrix_path: str | Path | None = None,
     combined_matrix_path: str | Path | None = None,
 ) -> CombinedReferenceStats:
-    """Create and save a reference matrix from the available cleaned texts."""
+    """Vytvoří a uloží referenční matici z dostupných vyčištěných textů."""
     primary_path = Path(clean_text_path)
     optional_extra_path = Path(extra_text_path)
     final_matrix_path = Path(output_path) if output_path is not None else OUTPUT_PATH
@@ -193,29 +193,29 @@ def build_combined_reference_matrix(
 
 
 def main() -> None:
-    """Run the combined reference matrix build with project default paths."""
+    """Spustí vytvoření kombinované matice s výchozími cestami projektu."""
     stats = build_combined_reference_matrix()
 
-    print(f"Used reference texts: {stats.reference_count}")
+    print(f"Použité referenční texty: {stats.reference_count}")
     for index, text_length in enumerate(stats.text_lengths, start=1):
-        print(f"Reference text {index} length: {text_length}")
-    print(f"Combined text length: {stats.combined_text_length}")
-    print(f"Bigram count: {stats.bigram_count}")
-    print(f"Matrix shape: {stats.matrix_shape}")
-    print(f"Matrix sum: {stats.matrix_sum:.12f}")
-    print(f"Matrix zero count: {stats.zero_count}")
-    print(f"Saved combined text to: {COMBINED_TEXT_PATH}")
-    print(f"Saved Krakatit matrix to: {stats.krakatit_matrix_path}")
+        print(f"Délka referenčního textu {index}: {text_length}")
+    print(f"Délka spojeného textu: {stats.combined_text_length}")
+    print(f"Počet bigramů: {stats.bigram_count}")
+    print(f"Tvar matice: {stats.matrix_shape}")
+    print(f"Součet matice: {stats.matrix_sum:.12f}")
+    print(f"Počet nul v matici: {stats.zero_count}")
+    print(f"Spojený text uložen do: {COMBINED_TEXT_PATH}")
+    print(f"Matice z Krakatitu uložena do: {stats.krakatit_matrix_path}")
     if stats.valka_matrix_stats is not None and stats.valka_matrix_path is not None:
-        print("Valka s mloky standalone matrix:")
-        print(f"  Text length: {stats.valka_matrix_stats.text_length}")
-        print(f"  Bigram count: {stats.valka_matrix_stats.bigram_count}")
-        print(f"  Matrix shape: {stats.valka_matrix_stats.matrix_shape}")
-        print(f"  Matrix sum: {stats.valka_matrix_stats.matrix_sum:.12f}")
-        print(f"  Matrix zero count: {stats.valka_matrix_stats.zero_count}")
-        print(f"  Saved to: {stats.valka_matrix_path}")
-    print(f"Saved combined matrix to: {stats.combined_matrix_path}")
-    print(f"Saved final matrix to: {stats.final_matrix_path}")
+        print("Samostatná matice z Války s mloky:")
+        print(f"  Délka textu: {stats.valka_matrix_stats.text_length}")
+        print(f"  Počet bigramů: {stats.valka_matrix_stats.bigram_count}")
+        print(f"  Tvar matice: {stats.valka_matrix_stats.matrix_shape}")
+        print(f"  Součet matice: {stats.valka_matrix_stats.matrix_sum:.12f}")
+        print(f"  Počet nul v matici: {stats.valka_matrix_stats.zero_count}")
+        print(f"  Uloženo do: {stats.valka_matrix_path}")
+    print(f"Kombinovaná matice uložena do: {stats.combined_matrix_path}")
+    print(f"Finální matice uložena do: {stats.final_matrix_path}")
 
 
 if __name__ == "__main__":

@@ -1,9 +1,9 @@
-"""Benchmark reference matrices on deterministic holdout ciphertexts.
+"""Benchmark referenčních matic na deterministických holdout ciphertextech.
 
-This script does not use the teacher ciphertext set. It creates its own
-plaintext samples from holdout slices of the available reference books,
-encrypts them with deterministic substitution keys, and then compares how
-well different reference matrices guide the existing blind cracking API.
+Skript nepoužívá učitelskou sadu ciphertextů. Vytvoří vlastní plaintexty
+z holdout částí dostupných referenčních knih, zašifruje je deterministickými
+substitučními klíči a porovná, jak dobře jednotlivé referenční matice vedou
+existující slepou kryptoanalýzu.
 """
 
 from __future__ import annotations
@@ -52,7 +52,7 @@ TRAIN_FRACTION = 0.8
 
 @dataclass(frozen=True)
 class BenchmarkStrategy:
-    """Definition of one restart strategy for the holdout benchmark."""
+    """Definice jedné strategie restartů pro holdout benchmark."""
 
     name: str
     iterations: int
@@ -60,13 +60,13 @@ class BenchmarkStrategy:
 
     @property
     def total_iterations(self) -> int:
-        """Return the total number of M-H iterations for the strategy."""
+        """Vrátí celkový počet M-H iterací pro danou strategii."""
         return self.iterations * self.restarts
 
 
 @dataclass(frozen=True)
 class HoldoutSample:
-    """One deterministic plaintext/ciphertext benchmark sample."""
+    """Jeden deterministický plaintext/ciphertext vzorek pro benchmark."""
 
     source_book: str
     plaintext_length: int
@@ -103,15 +103,15 @@ OPTIONAL_STRATEGY_5X4000 = BenchmarkStrategy("5x4000", iterations=4_000, restart
 
 
 def parse_seeds(raw: str) -> tuple[int, ...]:
-    """Parse a comma-separated seed list from the command line."""
+    """Zpracuje čárkou oddělený seznam seedů z příkazové řádky."""
     seeds = tuple(int(part.strip()) for part in raw.split(",") if part.strip())
     if not seeds:
-        raise ValueError("At least one seed must be provided.")
+        raise ValueError("Musí být zadán alespoň jeden seed.")
     return seeds
 
 
 def read_clean_text(path: str | Path) -> str:
-    """Read and validate one cleaned reference text."""
+    """Načte a zkontroluje jeden vyčištěný referenční text."""
     text = Path(path).read_text(encoding="utf-8").strip().strip("_")
     validate_clean_text(text)
     return text
@@ -121,15 +121,15 @@ def split_train_holdout(
     text: str,
     train_fraction: float = TRAIN_FRACTION,
 ) -> tuple[str, str]:
-    """Split text deterministically into non-overlapping train and holdout parts."""
+    """Deterministicky rozdělí text na nepřekrývající se train a holdout část."""
     if not 0.0 < train_fraction < 1.0:
-        raise ValueError("train_fraction must be between 0 and 1.")
+        raise ValueError("train_fraction musí být mezi 0 a 1.")
 
     split_index = int(len(text) * train_fraction)
     train = text[:split_index]
     holdout = text[split_index:]
     if not train or not holdout:
-        raise ValueError("Both train and holdout parts must be non-empty.")
+        raise ValueError("Train i holdout část musí být neprázdná.")
     return train, holdout
 
 
@@ -137,7 +137,7 @@ def load_reference_splits(
     krakatit_path: str | Path = KRAKATIT_TEXT_PATH,
     valka_path: str | Path = VALKA_TEXT_PATH,
 ) -> tuple[dict[str, str], dict[str, str]]:
-    """Load both books and return train and holdout text dictionaries."""
+    """Načte obě knihy a vrátí slovníky s train a holdout texty."""
     texts = {
         "krakatit": read_clean_text(krakatit_path),
         "valka_s_mloky": read_clean_text(valka_path),
@@ -154,7 +154,7 @@ def load_reference_splits(
 
 
 def build_holdout_reference_matrices(train_texts: Mapping[str, str]) -> dict[str, np.ndarray]:
-    """Build in-memory matrices from train-only text slices."""
+    """Vytvoří paměťové matice pouze z train částí textů."""
     krakatit_text = train_texts["krakatit"]
     valka_text = train_texts["valka_s_mloky"]
     combined_text = f"{krakatit_text}_{valka_text}"
@@ -167,7 +167,7 @@ def build_holdout_reference_matrices(train_texts: Mapping[str, str]) -> dict[str
 
 
 def deterministic_key(seed: int, alphabet: str = ALPHABET) -> str:
-    """Create one deterministic substitution key from ``seed``."""
+    """Vytvoří ze seedu jeden deterministický substituční klíč."""
     characters = list(alphabet)
     random.Random(seed).shuffle(characters)
     return "".join(characters)
@@ -178,14 +178,14 @@ def _sample_start_indices(
     plaintext_length: int,
     sample_count: int,
 ) -> list[int]:
-    """Return deterministic sample starts within a holdout text."""
+    """Vrátí deterministické začátky vzorků v holdout textu."""
     if holdout_length < plaintext_length:
         raise ValueError(
-            f"Holdout text is too short for length {plaintext_length}: "
-            f"{holdout_length} characters."
+            f"Holdout text je příliš krátký pro délku {plaintext_length}: "
+            f"{holdout_length} znaků."
         )
     if sample_count < 1:
-        raise ValueError("sample_count must be at least 1.")
+        raise ValueError("sample_count musí být alespoň 1.")
 
     available = holdout_length - plaintext_length
     if sample_count == 1 or available == 0:
@@ -201,7 +201,7 @@ def create_holdout_samples(
     samples_per_length: int = DEFAULT_SAMPLES_PER_LENGTH,
     key_seed_base: int = 100_000,
 ) -> list[HoldoutSample]:
-    """Create deterministic plaintext, key, and ciphertext benchmark samples."""
+    """Vytvoří deterministické plaintexty, klíče a ciphertexty pro benchmark."""
     samples: list[HoldoutSample] = []
 
     for source_book, holdout_text in holdout_texts.items():
@@ -235,7 +235,7 @@ def compare_plaintext_and_key(
     found_key: str,
     sample: HoldoutSample,
 ) -> dict[str, object]:
-    """Compare a blind crack result with the known generated sample."""
+    """Porovná slepě nalezený výsledek se známým vygenerovaným vzorkem."""
     matching_chars = sum(
         1
         for found_char, expected_char in zip(found_plaintext, sample.plaintext)
@@ -257,7 +257,7 @@ def crack_sample(
     strategy: BenchmarkStrategy,
     seed: int,
 ) -> CrackResult:
-    """Crack one generated ciphertext using the existing object API."""
+    """Prolomí jeden vygenerovaný ciphertext přes existující objektové API."""
     del matrix_name
     return cipher.crack(
         sample.ciphertext,
@@ -277,7 +277,7 @@ def make_result_row(
     result: CrackResult,
     runtime_seconds: float,
 ) -> dict[str, object]:
-    """Create one CSV-ready benchmark row."""
+    """Vytvoří jeden řádek benchmarku připravený pro CSV."""
     metrics = compare_plaintext_and_key(result.plaintext, result.key, sample)
     row: dict[str, object] = {
         "source_book": sample.source_book,
@@ -303,7 +303,7 @@ def run_reference_matrix_benchmark(
     strategies: Sequence[BenchmarkStrategy] = FULL_STRATEGIES,
     quick: bool = False,
 ) -> list[dict[str, object]]:
-    """Run the holdout benchmark and write CSV plus Markdown reports."""
+    """Spustí holdout benchmark a zapíše CSV i Markdown report."""
     train_texts, holdout_texts = load_reference_splits(krakatit_path, valka_path)
     matrices = build_holdout_reference_matrices(train_texts)
     samples = create_holdout_samples(
@@ -315,17 +315,17 @@ def run_reference_matrix_benchmark(
     seed_values = tuple(seeds)
 
     for matrix_name, matrix in matrices.items():
-        print(f"Loading in-memory matrix: {matrix_name}")
+        print(f"Načítám paměťovou matici: {matrix_name}")
         cipher = SubstitutionCipher(matrix)
 
         for strategy in strategies:
             for seed in seed_values:
                 for sample in samples:
                     print(
-                        "Running "
-                        f"book={sample.source_book}, length={sample.plaintext_length}, "
-                        f"sample={sample.sample_id}, matrix={matrix_name}, "
-                        f"strategy={strategy.name}, seed={seed}"
+                        "Spouštím "
+                        f"kniha={sample.source_book}, délka={sample.plaintext_length}, "
+                        f"vzorek={sample.sample_id}, matice={matrix_name}, "
+                        f"strategie={strategy.name}, seed={seed}"
                     )
                     started_at = time.perf_counter()
                     result = crack_sample(matrix_name, cipher, sample, strategy, seed)
@@ -358,7 +358,7 @@ def run_reference_matrix_benchmark(
 
 
 def write_csv_report(rows: list[dict[str, object]], path: str | Path) -> None:
-    """Write raw benchmark rows to CSV."""
+    """Zapíše nezpracované řádky benchmarku do CSV."""
     output_path = Path(path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with output_path.open("w", encoding="utf-8", newline="") as handle:
@@ -379,7 +379,7 @@ def _group_rows(
 
 
 def summarize_group(rows: list[dict[str, object]]) -> dict[str, object]:
-    """Summarize matching percentages and runtime for one group."""
+    """Shrne procenta shody a čas běhu pro jednu skupinu."""
     percents = [float(row["matching_percent"]) for row in rows]
     return {
         "sample_count": len(rows),
@@ -393,7 +393,7 @@ def summarize_group(rows: list[dict[str, object]]) -> dict[str, object]:
 
 
 def summarize_rows(rows: list[dict[str, object]]) -> dict[str, object]:
-    """Return overall holdout recommendation metrics."""
+    """Vrátí souhrnné metriky pro doporučení podle holdoutu."""
     if not rows:
         return {
             "best_matrix": "",
@@ -445,7 +445,7 @@ def write_markdown_report(
     seeds: Sequence[int],
     strategies: Sequence[BenchmarkStrategy],
 ) -> None:
-    """Write a Markdown benchmark report."""
+    """Zapíše benchmarkový report ve formátu Markdown."""
     output_path = Path(path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -556,36 +556,36 @@ def write_markdown_report(
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
-    """Create the command-line parser."""
+    """Vytvoří parser příkazové řádky."""
     parser = argparse.ArgumentParser(
-        description="Benchmark reference matrices on generated holdout ciphertexts."
+        description="Benchmark referenčních matic na vygenerovaných holdout ciphertextech."
     )
     parser.add_argument(
         "--quick",
         action="store_true",
-        help="Run a small smoke benchmark with few samples and short searches.",
+        help="Spustí krátký kontrolní benchmark s málo vzorky a krátkým hledáním.",
     )
     parser.add_argument(
         "--samples-per-length",
         type=int,
         default=None,
-        help="Number of holdout samples per length and source book.",
+        help="Počet holdout vzorků pro každou délku a zdrojovou knihu.",
     )
     parser.add_argument(
         "--seeds",
         default=None,
-        help="Comma-separated random seeds, for example 1,2,3.",
+        help="Seedy oddělené čárkou, například 1,2,3.",
     )
     parser.add_argument(
         "--include-5x4000",
         action="store_true",
-        help="Also include the optional 5x4000 full strategy.",
+        help="Přidá také volitelnou plnou strategii 5x4000.",
     )
     return parser
 
 
 def main() -> None:
-    """Run the benchmark from the command line."""
+    """Spustí benchmark z příkazové řádky."""
     parser = build_arg_parser()
     args = parser.parse_args()
 
@@ -614,15 +614,15 @@ def main() -> None:
     )
     summary = summarize_rows(rows)
 
-    print("\nReference matrix benchmark finished.")
+    print("\nBenchmark referenčních matic je hotový.")
     print(f"CSV report: {REPORT_CSV_PATH}")
     print(f"Markdown report: {REPORT_MD_PATH}")
-    print(f"Best matrix: {summary['best_matrix']}")
+    print(f"Nejlepší matice: {summary['best_matrix']}")
     print(
-        "Recommended holdout configuration: "
-        f"{summary['best_pair'][1]} with matrix {summary['best_pair'][0]}"
+        "Doporučená konfigurace podle holdoutu: "
+        f"{summary['best_pair'][1]} s maticí {summary['best_pair'][0]}"
     )
-    print(f"Exact plaintext results: {summary['exact_count']}/{len(rows)}")
+    print(f"Přesné plaintexty: {summary['exact_count']}/{len(rows)}")
 
 
 if __name__ == "__main__":

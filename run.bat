@@ -5,13 +5,13 @@ chcp 65001 >nul
 cd /d "%~dp0"
 
 if not exist ".venv\Scripts\activate.bat" (
-    echo Virtual environment .venv was not found.
-    echo Please run install.bat first.
+    echo Virtuální prostředí .venv nebylo nalezeno.
+    echo Nejdříve spusťte install.bat.
     pause
     exit /b 1
 )
 
-echo Activating virtual environment...
+echo Aktivuju virtuální prostředí...
 call ".venv\Scripts\activate.bat"
 if errorlevel 1 goto error
 
@@ -22,18 +22,18 @@ echo Iterace na restart: 10000
 echo Celkem iterací na jeden ciphertext: 20000
 echo.
 
-echo Validating assignment files...
+echo Kontroluji vstupní a výstupní soubory...
 python scripts\validate_assignment_files.py
 if errorlevel 1 goto error
 
 if not exist "data\ciphertexts" (
-    echo Ciphertext directory data\ciphertexts was not found.
-    echo Create it and place assignment ciphertext files there.
+    echo Složka data\ciphertexts nebyla nalezena.
+    echo Vytvořte ji a vložte do ní ciphertexty ze zadání.
 )
 
 if not exist "data\processed\TM_ref_krakatit.npy" (
-    echo Krakatit reference matrix was not found.
-    echo Building reference matrices...
+    echo Referenční matice z Krakatitu nebyla nalezena.
+    echo Vytvářím referenční matice...
     if exist "scripts\build_combined_reference_matrix.py" (
         python scripts\build_combined_reference_matrix.py
     ) else (
@@ -42,26 +42,26 @@ if not exist "data\processed\TM_ref_krakatit.npy" (
 )
 if errorlevel 1 goto error
 
-echo Running tests...
+echo Spouštím testy...
 pytest
 if errorlevel 1 goto error
 
-echo Running final decryption...
+echo Spouštím finální dešifrování...
 python scripts\decrypt_samples.py --matrix data\processed\TM_ref_krakatit.npy --iterations 10000 --restarts 2
 if errorlevel 1 goto error
 
-echo Evaluating outputs...
+echo Vyhodnocuji výstupy...
 python scripts\evaluate_outputs.py
 if errorlevel 1 goto error
 
 echo.
-echo Run is complete.
-echo If no ciphertext files are available, the message above is expected.
+echo Běh je hotový.
+echo Pokud nejsou k dispozici žádné ciphertexty, je předchozí hláška v pořádku.
 pause
 exit /b 0
 
 :error
 echo.
-echo Run failed. Check the messages above.
+echo Běh selhal. Zkontrolujte zprávy výše.
 pause
 exit /b 1

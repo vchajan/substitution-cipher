@@ -1,37 +1,38 @@
 @echo off
 setlocal
+chcp 65001 >nul
 
 cd /d "%~dp0"
 
-echo Installing project...
+echo Instaluji projekt...
 
 if not exist ".venv\Scripts\python.exe" (
-    echo Creating virtual environment .venv...
+    echo Vytvářím virtuální prostředí .venv...
     python -m venv .venv
     if errorlevel 1 goto error
 ) else (
-    echo Virtual environment .venv already exists.
+    echo Virtuální prostředí .venv už existuje.
 )
 
-echo Activating virtual environment...
+echo Aktivuju virtuální prostředí...
 call ".venv\Scripts\activate.bat"
 if errorlevel 1 goto error
 
-echo Updating pip...
+echo Aktualizuji pip...
 python -m pip install --upgrade pip
 if errorlevel 1 goto error
 
-echo Installing project with development dependencies...
+echo Instaluji projekt včetně vývojových závislostí...
 python -m pip install -e ".[dev]"
 if errorlevel 1 goto error
 
 echo.
-echo Installation is complete.
+echo Instalace je hotová.
 pause
 exit /b 0
 
 :error
 echo.
-echo Installation failed. Check the messages above.
+echo Instalace selhala. Zkontrolujte zprávy výše.
 pause
 exit /b 1
