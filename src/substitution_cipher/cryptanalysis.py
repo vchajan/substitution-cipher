@@ -6,7 +6,7 @@ import random
 
 import numpy as np
 
-from .bigrams import absolute_bigram_matrix, get_bigrams
+from .bigrams import get_bigrams, transition_matrix
 from .cipher import random_key, substitute_decrypt, validate_key
 from .constants import ALPHABET
 
@@ -31,7 +31,7 @@ def _validate_reference_matrix(TM_ref: np.ndarray) -> np.ndarray:
 def plausibility(text: str, TM_ref: np.ndarray) -> float:
     """Ohodnotí text podle referenčních četností bigramů."""
     reference = _validate_reference_matrix(TM_ref)
-    observed = absolute_bigram_matrix(get_bigrams(text))
+    observed = transition_matrix(get_bigrams(text))
     # Skóre je součet log-pravděpodobností bigramů vážený jejich četností v textu.
     return float(np.sum(np.log(reference) * observed))
 
