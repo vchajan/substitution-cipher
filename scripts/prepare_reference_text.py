@@ -28,6 +28,7 @@ def prepare_reference_text(
     clean_path = Path(output_path)
 
     raw_text = raw_path.read_text(encoding="utf-8")
+    # Čištění držíme odděleně od downloadu, aby šel stejný raw text opakovaně zpracovat.
     cleaned = clean_text(raw_text)
     validate_clean_text(cleaned)
 

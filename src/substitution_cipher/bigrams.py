@@ -15,6 +15,7 @@ def get_bigrams(text: str) -> list[str]:
 def absolute_bigram_matrix(bigrams: list[str]) -> np.ndarray:
     """Spočítá absolutní četnosti bigramů bez vyhlazení nul."""
     alphabet_index = {char: index for index, char in enumerate(ALPHABET)}
+    # Řádek určuje první znak bigramu, sloupec druhý znak bigramu.
     matrix = np.zeros((len(ALPHABET), len(ALPHABET)), dtype=float)
 
     for bigram in bigrams:
@@ -33,7 +34,7 @@ def absolute_bigram_matrix(bigrams: list[str]) -> np.ndarray:
 def transition_matrix(bigrams: list[str]) -> np.ndarray:
     """Vrátí absolutní bigramovou matici s nulami nahrazenými jedničkou."""
     matrix = absolute_bigram_matrix(bigrams)
-    # Nuly nahrazujeme jedničkou, aby později nevznikl logaritmus z nuly.
+    # Nulové četnosti vyhladíme jedničkou, aby neznámý bigram neměl nulovou šanci.
     matrix[matrix == 0.0] = 1.0
     return matrix
 

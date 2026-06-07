@@ -62,7 +62,7 @@ class SubstitutionCipher:
         return get_bigrams(text)
 
     def build_reference_matrix(self, text: str) -> np.ndarray:
-        """Vytvoří a uloží relativní referenční matici z čistého textu."""
+        """Vytvoří relativní referenční matici z čistého textu."""
         _validate_alphabet_text(text, "Reference text")
         absolute = transition_matrix(get_bigrams(text))
         total = float(absolute.sum())
@@ -115,6 +115,7 @@ class SubstitutionCipher:
         for restart_index in range(restarts):
             restart_seed = None if seed is None else seed + restart_index
             rng = random.Random(restart_seed)
+            # Restarty jsou nezávislé pokusy; vybírá se pouze podle plausibility.
             key, plaintext, score = _run_metropolis_hastings(
                 text=ciphertext,
                 TM_ref=self.reference_matrix,

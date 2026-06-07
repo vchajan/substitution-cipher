@@ -7802,8 +7802,7 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h1 id="Substitu%C4%8Dn%C3%AD-%C5%A1ifra:-demonstra%C4%8Dn%C3%AD-notebook">Substituční šifra: demonstrační notebook<a class="anchor-link" href="#Substitu%C4%8Dn%C3%AD-%C5%A1ifra:-demonstra%C4%8Dn%C3%AD-notebook">¶</a></h1><p>Notebook krok za krokem ukazuje práci se substituční šifrou, přípravu referenčního textu, tvorbu bigramové matice a krátkou demonstrační kryptoanalýzu. Jediným referenčním textem je <strong>Válka s mloky</strong>.</p>
-<p>Cílem notebooku je vysvětlit postup, ne spouštět dlouhé dávkové dešifrování všech souborů ze zadání.</p>
+<h1 id="Demonstrace-%C5%99e%C5%A1en%C3%AD-substitu%C4%8Dn%C3%AD-%C5%A1ifry">Demonstrace řešení substituční šifry<a class="anchor-link" href="#Demonstrace-%C5%99e%C5%A1en%C3%AD-substitu%C4%8Dn%C3%AD-%C5%A1ifry">¶</a></h1><p>Notebook ukazuje celý postup řešení zadání: práci s abecedou, přípravu referenčního textu, sestavení bigramové matice, šifrování, dešifrování, výpočet věrohodnosti a krátkou ukázku prolomení substituční šifry. Dlouhé dávkové dešifrování všech učitelských souborů se zde nespouští.</p>
 </div>
 </div>
 </div>
@@ -7814,7 +7813,7 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="1.-Pou%C5%BE%C3%ADvan%C3%A1-abeceda">1. Používaná abeceda<a class="anchor-link" href="#1.-Pou%C5%BE%C3%ADvan%C3%A1-abeceda">¶</a></h2><p>Projekt používá pevnou abecedu <code>ABCDEFGHIJKLMNOPQRSTUVWXYZ_</code>. Obsahuje 26 písmen a jeden znak <code>_</code>, který představuje mezeru. Jiná abeceda se v řešení nenabízí, aby bylo chování přesně podle zadání.</p>
+<h2 id="1.-Pou%C5%BE%C3%ADvan%C3%A1-abeceda">1. Používaná abeceda<a class="anchor-link" href="#1.-Pou%C5%BE%C3%ADvan%C3%A1-abeceda">¶</a></h2><p>Zadání používá abecedu <code>ABCDEFGHIJKLMNOPQRSTUVWXYZ_</code>. Znak <code>_</code> reprezentuje mezeru. Všechny vstupní texty musí být před šifrováním nebo kryptoanalýzou převedeny právě do této abecedy.</p>
 </div>
 </div>
 </div>
@@ -7840,9 +7839,22 @@ a.anchor-link {
     <span class="n">plt</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">"matplotlib není nainstalovaný, vizualizace se přeskočí."</span><span class="p">)</span>
 
-<span class="n">PROJECT_ROOT</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span>
-<span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">PROJECT_ROOT</span> <span class="o">/</span> <span class="s2">"src"</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="p">:</span>
-    <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">PROJECT_ROOT</span> <span class="o">/</span> <span class="s2">"src"</span><span class="p">))</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">find_project_root</span><span class="p">(</span><span class="n">start</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">candidate</span> <span class="ow">in</span> <span class="p">[</span><span class="n">start</span><span class="o">.</span><span class="n">resolve</span><span class="p">(),</span> <span class="o">*</span><span class="n">start</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parents</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">candidate</span> <span class="o">/</span> <span class="s2">"pyproject.toml"</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="k">return</span> <span class="n">candidate</span>
+    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">"Nepodařilo se najít kořen projektu podle pyproject.toml."</span><span class="p">)</span>
+
+
+<span class="n">PROJECT_ROOT</span> <span class="o">=</span> <span class="n">find_project_root</span><span class="p">(</span><span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">())</span>
+<span class="n">SRC_PATH</span> <span class="o">=</span> <span class="n">PROJECT_ROOT</span> <span class="o">/</span> <span class="s2">"src"</span>
+<span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">SRC_PATH</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="p">:</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">SRC_PATH</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">relative_path</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="n">PROJECT_ROOT</span><span class="p">)</span><span class="o">.</span><span class="n">as_posix</span><span class="p">()</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">substitution_cipher</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">ALPHABET</span><span class="p">,</span>
@@ -7868,7 +7880,7 @@ a.anchor-link {
 <span class="kn">from</span><span class="w"> </span><span class="nn">substitution_cipher.preprocessing</span><span class="w"> </span><span class="kn">import</span> <span class="n">clean_text</span><span class="p">,</span> <span class="n">validate_clean_text</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="n">ALPHABET</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"Počet znaků:"</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">ALPHABET</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Kořen projektu:"</span><span class="p">,</span> <span class="n">PROJECT_ROOT</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -7882,9 +7894,20 @@ a.anchor-link {
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
 <pre>ABCDEFGHIJKLMNOPQRSTUVWXYZ_
-Počet znaků: 27
+Kořen projektu: python
 </pre>
 </div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=importy-vysledek">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Výstup potvrzuje pevnou abecedu a najde kořen projektu bez ohledu na to, odkud je notebook spuštěn.</p>
 </div>
 </div>
 </div>
@@ -7895,7 +7918,7 @@ Počet znaků: 27
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="2.-Struktura-projektu">2. Struktura projektu<a class="anchor-link" href="#2.-Struktura-projektu">¶</a></h2><p>Knihovní logika je ve <code>src/substitution_cipher/</code>. Spouštěcí skripty jsou ve <code>scripts/</code>. Referenční text je v <code>data/reference/</code>, ciphertexty v <code>data/ciphertexts/</code>, matice v <code>models/</code> a výsledky v <code>outputs/</code>.</p>
+<h2 id="2.-Struktura-projektu">2. Struktura projektu<a class="anchor-link" href="#2.-Struktura-projektu">¶</a></h2><p>Nejprve ověříme, že notebook vidí důležité vstupy, skripty a výstupní složky. Cesty vypisujeme relativně ke kořeni projektu, aby notebook neobsahoval lokální absolutní cesty.</p>
 </div>
 </div>
 </div>
@@ -7929,15 +7952,83 @@ Počet znaků: 27
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>src/substitution_cipher existuje: False
-scripts existuje: False
-data/reference existuje: False
-data/ciphertexts existuje: False
-models existuje: False
-outputs existuje: False
-reports existuje: False
+<pre>src/substitution_cipher existuje: True
+scripts existuje: True
+data/reference existuje: True
+data/ciphertexts existuje: True
+models existuje: True
+outputs existuje: True
+reports existuje: True
 </pre>
 </div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=struktura-vysledek">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Všechny důležité složky mají existovat. Pokud je někde <code>False</code>, notebook neběží nad správným kořenem projektu.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=download-reference">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="3.-Z%C3%ADsk%C3%A1n%C3%AD-referen%C4%8Dn%C3%ADho-textu-z-internetu">3. Získání referenčního textu z internetu<a class="anchor-link" href="#3.-Z%C3%ADsk%C3%A1n%C3%AD-referen%C4%8Dn%C3%ADho-textu-z-internetu">¶</a></h2><p>Zdrojem jsou české Wikizdroje. Skript <code>scripts/download_reference_text.py</code> používá MediaWiki API, stáhne vlastní obsah díla a uloží jej do <code>data/reference/valka_s_mloky_raw.txt</code>. Notebook knihu automaticky nestahuje, aby fungoval i bez internetu a zbytečně nepřepisoval lokální data.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=download-reference-kod">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [3]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s2">"Zdroj:"</span><span class="p">,</span> <span class="s2">"https://cs.wikisource.org/w/api.php"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Skript:"</span><span class="p">,</span> <span class="s2">"scripts/download_reference_text.py"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Raw text:"</span><span class="p">,</span> <span class="n">relative_path</span><span class="p">(</span><span class="n">RAW_REFERENCE_TEXT_PATH</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Lokální raw text existuje:"</span><span class="p">,</span> <span class="n">RAW_REFERENCE_TEXT_PATH</span><span class="o">.</span><span class="n">exists</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">r</span><span class="s2">"Ruční stažení: python scripts\download_reference_text.py"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>Zdroj: https://cs.wikisource.org/w/api.php
+Skript: scripts/download_reference_text.py
+Raw text: data/reference/valka_s_mloky_raw.txt
+Lokální raw text existuje: True
+Ruční stažení: python scripts\download_reference_text.py
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=download-reference-vysledek">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Notebook pouze ukazuje, kde se raw text bere a zda už je lokálně k dispozici. Samotné stahování z internetu nespouští.</p>
 </div>
 </div>
 </div>
@@ -7948,7 +8039,7 @@ reports existuje: False
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="3.-Surov%C3%BD-text-V%C3%A1lky-s-mloky">3. Surový text Války s mloky<a class="anchor-link" href="#3.-Surov%C3%BD-text-V%C3%A1lky-s-mloky">¶</a></h2><p>Surový text se čte jako UTF-8. V notebooku zobrazujeme jen krátkou ukázku, protože celý soubor je dlouhý a pro vysvětlení není potřeba.</p>
+<h2 id="4.-Surov%C3%BD-text-V%C3%A1lky-s-mloky">4. Surový text Války s mloky<a class="anchor-link" href="#4.-Surov%C3%BD-text-V%C3%A1lky-s-mloky">¶</a></h2><p>Surový text je uložen jako UTF-8 v <code>data/reference/valka_s_mloky_raw.txt</code>. Notebook ukazuje jen krátký začátek, aby bylo jasné, že pracujeme s běžným českým textem, ne s už vyčištěnou abecedou.</p>
 </div>
 </div>
 </div>
@@ -7957,11 +8048,11 @@ reports existuje: False
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [3]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [4]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">raw_text</span> <span class="o">=</span> <span class="n">RAW_REFERENCE_TEXT_PATH</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"Cesta:"</span><span class="p">,</span> <span class="n">RAW_REFERENCE_TEXT_PATH</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Cesta:"</span><span class="p">,</span> <span class="n">relative_path</span><span class="p">(</span><span class="n">RAW_REFERENCE_TEXT_PATH</span><span class="p">))</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"Délka surového textu:"</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">raw_text</span><span class="p">))</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">raw_text</span><span class="p">[:</span><span class="mi">300</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span> <span class="s2">" "</span><span class="p">))</span>
 </pre></div>
@@ -7976,11 +8067,22 @@ reports existuje: False
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Cesta: D:\unicorn\python\data\reference\valka_s_mloky_raw.txt
+<pre>Cesta: data/reference/valka_s_mloky_raw.txt
 Délka surového textu: 401043
 Kdybyste hledali ostrůvek Tana Masa na mapě, našli byste jej právě na rovníku kousek na západ od Sumatry; ale kdybyste se zeptali na palubě lodi Kandong Bandoeng kapitána J. van Tocha, co to je tahle Tana Masa, před kterou právě zakotvil, nadával by chvíli a pak by vám řekl, že to je ta nejšpinavějš
 </pre>
 </div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=raw-text-vysledek">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Surový text ještě obsahuje diakritiku, mezery a běžnou interpunkci. Čištění proběhne až v dalším kroku.</p>
 </div>
 </div>
 </div>
@@ -7991,7 +8093,7 @@ Kdybyste hledali ostrůvek Tana Masa na mapě, našli byste jej právě na rovn�
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="4.-%C4%8Ci%C5%A1t%C4%9Bn%C3%AD-textu">4. Čištění textu<a class="anchor-link" href="#4.-%C4%8Ci%C5%A1t%C4%9Bn%C3%AD-textu">¶</a></h2><p>Čištění odstraní diakritiku, převede text na velká písmena, oddělovače převede na <code>_</code>, odstraní číslice a interpunkci a ponechá pouze <code>A-Z_</code>. Výsledek se ukládá do <code>data/reference/valka_s_mloky_clean.txt</code>.</p>
+<h2 id="5.-%C4%8Ci%C5%A1t%C4%9Bn%C3%AD-textu">5. Čištění textu<a class="anchor-link" href="#5.-%C4%8Ci%C5%A1t%C4%9Bn%C3%AD-textu">¶</a></h2><p>Čištění odstraní diakritiku, převede text na velká písmena, oddělovače převede na <code>_</code>, odstraní číslice a interpunkci a ponechá pouze <code>A-Z_</code>. Výsledek se ukládá do <code>data/reference/valka_s_mloky_clean.txt</code>.</p>
 </div>
 </div>
 </div>
@@ -8000,7 +8102,7 @@ Kdybyste hledali ostrůvek Tana Masa na mapě, našli byste jej právě na rovn�
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [4]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [5]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">clean_preview</span> <span class="o">=</span> <span class="n">clean_text</span><span class="p">(</span><span class="n">raw_text</span><span class="p">[:</span><span class="mi">1000</span><span class="p">])</span>
@@ -8031,13 +8133,24 @@ Nepovolené znaky: []
 </div>
 </div>
 </div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=clean-text-vysledek">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Vyčištěný text už odpovídá abecedě zadání, takže z něj lze bezpečně počítat bigramy.</p>
+</div>
+</div>
+</div>
+</div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=bigrams">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="5.-Bigramy">5. Bigramy<a class="anchor-link" href="#5.-Bigramy">¶</a></h2><p>Bigram je dvojice sousedních znaků. Například z textu <code>KRYPTOSYSTEM</code> vzniknou dvojice <code>KR</code>, <code>RY</code>, <code>YP</code>, <code>PT</code>, <code>TO</code>, <code>OS</code>, <code>SY</code>, <code>YS</code>, <code>ST</code>, <code>TE</code>, <code>EM</code>.</p>
+<h2 id="6.-Bigramy">6. Bigramy<a class="anchor-link" href="#6.-Bigramy">¶</a></h2><p>Bigram je dvojice sousedních znaků. Například z textu <code>KRYPTOSYSTEM</code> vzniknou dvojice <code>KR</code>, <code>RY</code>, <code>YP</code>, <code>PT</code>, <code>TO</code>, <code>OS</code>, <code>SY</code>, <code>YS</code>, <code>ST</code>, <code>TE</code>, <code>EM</code>.</p>
 </div>
 </div>
 </div>
@@ -8046,7 +8159,7 @@ Nepovolené znaky: []
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [5]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [6]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">example</span> <span class="o">=</span> <span class="s2">"KRYPTOSYSTEM"</span>
@@ -8074,13 +8187,24 @@ Počet bigramů v referenčním textu: 381932
 </div>
 </div>
 </div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=bigrams-vysledek">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Počet bigramů je vždy o jeden menší než délka neprázdného textu.</p>
+</div>
+</div>
+</div>
+</div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=absolute-matrix">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="6.-Absolutn%C3%AD-bigramov%C3%A1-matice">6. Absolutní bigramová matice<a class="anchor-link" href="#6.-Absolutn%C3%AD-bigramov%C3%A1-matice">¶</a></h2><p>Matice má rozměr <code>27 × 27</code>. Řádky představují první znak bigramu, sloupce druhý znak a hodnota říká, kolikrát se daná dvojice v textu objevila.</p>
+<h2 id="7.-Absolutn%C3%AD-bigramov%C3%A1-matice">7. Absolutní bigramová matice<a class="anchor-link" href="#7.-Absolutn%C3%AD-bigramov%C3%A1-matice">¶</a></h2><p>Matice má 27 řádků a 27 sloupců. Řádek odpovídá prvnímu znaku bigramu, sloupec druhému znaku. Hodnota v buňce říká, kolikrát se daný bigram v referenčním textu objevil.</p>
 </div>
 </div>
 </div>
@@ -8089,7 +8213,7 @@ Počet bigramů v referenčním textu: 381932
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [6]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [7]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">absolute_raw</span> <span class="o">=</span> <span class="n">absolute_bigram_matrix</span><span class="p">(</span><span class="n">reference_bigrams</span><span class="p">)</span>
@@ -8117,13 +8241,24 @@ Součet absolutních četností: 381932
 </div>
 </div>
 </div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=absolute-matrix-vysledek">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Absolutní matice ještě obsahuje hrubé četnosti, ne pravděpodobnosti.</p>
+</div>
+</div>
+</div>
+</div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=zeros">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="7.-O%C5%A1et%C5%99en%C3%AD-nul">7. Ošetření nul<a class="anchor-link" href="#7.-O%C5%A1et%C5%99en%C3%AD-nul">¶</a></h2><p>Některé bigramy se v referenčním textu nemusí vyskytnout. Jejich buňky mají hodnotu nula. Před normalizací se proto nuly nahradí jedničkou, aby při výpočtu věrohodnosti nevznikl <code>log(0)</code>.</p>
+<h2 id="8.-Nahrazen%C3%AD-nul-jedni%C4%8Dkami">8. Nahrazení nul jedničkami<a class="anchor-link" href="#8.-Nahrazen%C3%AD-nul-jedni%C4%8Dkami">¶</a></h2><p>Některé bigramy se ve Válce s mloky nemusí objevit. Nulová pravděpodobnost by při logaritmickém skórování znemožnila práci s kandidáty, které takový bigram obsahují. Proto se nuly před normalizací nahradí hodnotou <code>1</code>.</p>
 </div>
 </div>
 </div>
@@ -8132,7 +8267,7 @@ Součet absolutních četností: 381932
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [7]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [8]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">zero_count_before</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">absolute_raw</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">))</span>
@@ -8161,13 +8296,24 @@ Počet nul po ošetření: 0
 </div>
 </div>
 </div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=zeros-vysledek">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Po vyhlazení nemá žádný bigram nulovou četnost.</p>
+</div>
+</div>
+</div>
+</div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=relative-matrix">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="8.-Relativn%C3%AD-referen%C4%8Dn%C3%AD-matice">8. Relativní referenční matice<a class="anchor-link" href="#8.-Relativn%C3%AD-referen%C4%8Dn%C3%AD-matice">¶</a></h2><p>Relativní matice vznikne normalizací absolutní matice: <code>relative_matrix = absolute_matrix / absolute_matrix.sum()</code>. Ukládá se do <code>models/TM_ref.npy</code>.</p>
+<h2 id="9.-Normalizace-na-relativn%C3%AD-matici">9. Normalizace na relativní matici<a class="anchor-link" href="#9.-Normalizace-na-relativn%C3%AD-matici">¶</a></h2><p>Po vyhlazení nul se absolutní četnosti vydělí celkovým součtem. Matice pak představuje pravděpodobnostní model českých bigramů podle referenčního textu.</p>
 </div>
 </div>
 </div>
@@ -8176,13 +8322,64 @@ Počet nul po ošetření: 0
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [8]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [9]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">relative_matrix</span> <span class="o">=</span> <span class="n">absolute_smoothed</span> <span class="o">/</span> <span class="n">absolute_smoothed</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
-<span class="n">matrix</span> <span class="o">=</span> <span class="n">load_matrix</span><span class="p">(</span><span class="n">REFERENCE_MATRIX_PATH</span><span class="p">)</span> <span class="k">if</span> <span class="n">REFERENCE_MATRIX_PATH</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="k">else</span> <span class="n">relative_matrix</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="s2">"Cesta k matici:"</span><span class="p">,</span> <span class="n">REFERENCE_MATRIX_PATH</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Součet relativní matice:"</span><span class="p">,</span> <span class="n">relative_matrix</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Ukázka hodnot v prvním řádku:"</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">relative_matrix</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:</span><span class="mi">8</span><span class="p">],</span> <span class="mi">8</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>Součet relativní matice: 1.0
+Ukázka hodnot v prvním řádku: [4.97300e-05 1.63844e-03 2.75080e-03 3.81081e-03 3.92600e-05 1.70130e-04
+ 2.74820e-04 1.22229e-03]
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=relative-matrix-vysledek">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Relativní matice je normalizovaná, takže její součet je roven jedné.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=matrix-check">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="10.-Kontrola-referen%C4%8Dn%C3%AD-matice">10. Kontrola referenční matice<a class="anchor-link" href="#10.-Kontrola-referen%C4%8Dn%C3%AD-matice">¶</a></h2><p>Po sestavení matice kontrolujeme rozměr, součet pravděpodobností, nulové buňky, <code>NaN</code> a nekonečné hodnoty. Tím se rychle odhalí poškozená nebo špatně normalizovaná matice.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=matrix-check-kod">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [10]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">matrix</span> <span class="o">=</span> <span class="n">load_matrix</span><span class="p">(</span><span class="n">REFERENCE_MATRIX_PATH</span><span class="p">)</span> <span class="k">if</span> <span class="n">REFERENCE_MATRIX_PATH</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="k">else</span> <span class="n">relative_matrix</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Cesta k matici:"</span><span class="p">,</span> <span class="n">relative_path</span><span class="p">(</span><span class="n">REFERENCE_MATRIX_PATH</span><span class="p">))</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"Shape:"</span><span class="p">,</span> <span class="n">matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"Součet:"</span><span class="p">,</span> <span class="n">matrix</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"Počet nul:"</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">matrix</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">)))</span>
@@ -8200,7 +8397,7 @@ Počet nul po ošetření: 0
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Cesta k matici: D:\unicorn\python\models\TM_ref.npy
+<pre>Cesta k matici: models/TM_ref.npy
 Shape: (27, 27)
 Součet: 1.0
 Počet nul: 0
@@ -8212,13 +8409,24 @@ Obsahuje nekonečné hodnoty: False
 </div>
 </div>
 </div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=matrix-check-vysledek">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Matice má očekávaný rozměr 27 × 27 a neobsahuje hodnoty, které by rozbily logaritmické skórování.</p>
+</div>
+</div>
+</div>
+</div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=heatmap">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="9.-Vizualizace-matice">9. Vizualizace matice<a class="anchor-link" href="#9.-Vizualizace-matice">¶</a></h2><p>Heatmapa zobrazuje logaritmy pravděpodobností bigramů. Světlejší oblasti odpovídají častějším dvojicím znaků v referenčním textu.</p>
+<h2 id="11.-Vizualizace-matice">11. Vizualizace matice<a class="anchor-link" href="#11.-Vizualizace-matice">¶</a></h2><p>Heatmapa zobrazuje logaritmy pravděpodobností bigramů. Světlejší oblasti odpovídají častějším dvojicím znaků v referenčním textu.</p>
 </div>
 </div>
 </div>
@@ -8227,7 +8435,7 @@ Obsahuje nekonečné hodnoty: False
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [9]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [11]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="k">if</span> <span class="n">plt</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -8263,13 +8471,24 @@ Obsahuje nekonečné hodnoty: False
 </div>
 </div>
 </div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=heatmap-vysledek">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Vizualizace je jen pomocná; pokud není dostupný <code>matplotlib</code>, výpočty projektu tím nejsou dotčeny.</p>
+</div>
+</div>
+</div>
+</div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=key">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="10.-Substitu%C4%8Dn%C3%AD-kl%C3%AD%C4%8D">10. Substituční klíč<a class="anchor-link" href="#10.-Substitu%C4%8Dn%C3%AD-kl%C3%AD%C4%8D">¶</a></h2><p>Klíč je permutace celé abecedy. Má délku 27 a každý znak se v něm objeví právě jednou.</p>
+<h2 id="12.-Vytvo%C5%99en%C3%AD-a-validace-kl%C3%AD%C4%8De">12. Vytvoření a validace klíče<a class="anchor-link" href="#12.-Vytvo%C5%99en%C3%AD-a-validace-kl%C3%AD%C4%8De">¶</a></h2><p>Klíč je permutace celé abecedy. Má délku 27 a každý znak se v něm objeví právě jednou. Validace hlídá, že klíč není kratší, delší ani neobsahuje duplicitní znak.</p>
 </div>
 </div>
 </div>
@@ -8278,7 +8497,7 @@ Obsahuje nekonečné hodnoty: False
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [10]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [12]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">demo_key</span> <span class="o">=</span> <span class="n">ALPHABET</span><span class="p">[</span><span class="mi">3</span><span class="p">:]</span> <span class="o">+</span> <span class="n">ALPHABET</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span>
@@ -8305,13 +8524,24 @@ Délka: 27
 </div>
 </div>
 </div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=key-vysledek">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Validní klíč je permutace celé abecedy, a proto jej lze použít pro obě mapování.</p>
+</div>
+</div>
+</div>
+</div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=encrypt">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="11.-%C5%A0ifrov%C3%A1n%C3%AD">11. Šifrování<a class="anchor-link" href="#11.-%C5%A0ifrov%C3%A1n%C3%AD">¶</a></h2><p>Při šifrování se každý znak plaintextu nahradí znakem na stejné pozici v klíči. Ukázka používá povinnou funkci i objektové API.</p>
+<h2 id="13.-%C5%A0ifrov%C3%A1n%C3%AD">13. Šifrování<a class="anchor-link" href="#13.-%C5%A0ifrov%C3%A1n%C3%AD">¶</a></h2><p>Při šifrování se každý znak plaintextu nahradí znakem, který je v klíči na stejné pozici jako původní znak v abecedě.</p>
 </div>
 </div>
 </div>
@@ -8320,7 +8550,7 @@ Délka: 27
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [11]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [13]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">plaintext</span> <span class="o">=</span> <span class="s2">"AHOJ_SVETE"</span>
@@ -8351,13 +8581,24 @@ Objektové API: DKRMCVYHWH
 </div>
 </div>
 </div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=encrypt-vysledek">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Ciphertext se liší od plaintextu, ale délka textu zůstává stejná.</p>
+</div>
+</div>
+</div>
+</div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=decrypt">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="12.-De%C5%A1ifrov%C3%A1n%C3%AD">12. Dešifrování<a class="anchor-link" href="#12.-De%C5%A1ifrov%C3%A1n%C3%AD">¶</a></h2><p>Dešifrování používá inverzní mapování. Kontrola <code>decrypted == plaintext</code> ověřuje, že se text vrátil do původního tvaru.</p>
+<h2 id="14.-De%C5%A1ifrov%C3%A1n%C3%AD">14. Dešifrování<a class="anchor-link" href="#14.-De%C5%A1ifrov%C3%A1n%C3%AD">¶</a></h2><p>Dešifrování používá opačné mapování. Z ciphertextu se podle klíče vrátí původní znaky plaintextu.</p>
 </div>
 </div>
 </div>
@@ -8366,7 +8607,7 @@ Objektové API: DKRMCVYHWH
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [12]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [14]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">decrypted</span> <span class="o">=</span> <span class="n">substitute_decrypt</span><span class="p">(</span><span class="n">ciphertext</span><span class="p">,</span> <span class="n">demo_key</span><span class="p">)</span>
@@ -8394,13 +8635,24 @@ Objektové API: AHOJ_SVETE
 </div>
 </div>
 </div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=decrypt-vysledek">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Při použití stejného klíče se vrátí původní plaintext.</p>
+</div>
+</div>
+</div>
+</div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=plausibility">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="13.-V%C4%9Brohodnost-textu">13. Věrohodnost textu<a class="anchor-link" href="#13.-V%C4%9Brohodnost-textu">¶</a></h2><p>Funkce <code>plausibility</code> hodnotí text podle bigramové matice. Vyšší, tedy méně záporné skóre, obvykle znamená jazykově pravděpodobnější text.</p>
+<h2 id="15.-V%C3%BDpo%C4%8Det-v%C4%9Brohodnosti">15. Výpočet věrohodnosti<a class="anchor-link" href="#15.-V%C3%BDpo%C4%8Det-v%C4%9Brohodnosti">¶</a></h2><p>Funkce <code>plausibility</code> sečte logaritmy pravděpodobností všech bigramů v textu. Jazykově přirozenější český text obvykle dostane vyšší, tedy méně záporné skóre.</p>
 </div>
 </div>
 </div>
@@ -8409,7 +8661,7 @@ Objektové API: AHOJ_SVETE
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [13]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [15]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">normal_text</span> <span class="o">=</span> <span class="n">clean_text</span><span class="p">(</span><span class="s2">"Toto je krátký český text pro ukázku"</span><span class="p">)</span>
@@ -8442,25 +8694,24 @@ Skóre přeházeného textu: -247.5802980799379
 </div>
 </div>
 </div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=plausibility-vysledek">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Přeházený text má typicky horší skóre než smysluplná česká věta.</p>
+</div>
+</div>
+</div>
+</div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=mh">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="14.-Metropolis-Hastings%C5%AFv-algoritmus">14. Metropolis-Hastingsův algoritmus<a class="anchor-link" href="#14.-Metropolis-Hastings%C5%AFv-algoritmus">¶</a></h2><p>Povinný algoritmus ze zadání:</p>
-<ol>
-<li>vytvoří náhodný počáteční klíč,</li>
-<li>dešifruje ciphertext,</li>
-<li>spočítá skóre,</li>
-<li>prohodí dva náhodné znaky v klíči,</li>
-<li>znovu dešifruje a spočítá skóre,</li>
-<li>lepší kandidát přijme vždy,</li>
-<li>horší kandidát přijme s pravděpodobností <code>0.01</code>,</li>
-<li>uchovává nejlepší výsledek,</li>
-<li>opakuje postup po zadaný počet iterací.</li>
-</ol>
-<p>Volitelné rozšíření <code>polish_key</code> a restarty jsou vlastní doplnění, ne náhrada povinného algoritmu.</p>
+<h2 id="16.-Metropolis-Hastings%C5%AFv-algoritmus-krok-po-kroku">16. Metropolis-Hastingsův algoritmus krok po kroku<a class="anchor-link" href="#16.-Metropolis-Hastings%C5%AFv-algoritmus-krok-po-kroku">¶</a></h2><p>Postup začíná náhodným klíčem. V každé iteraci se prohodí dva znaky v klíči, kandidátní klíč dešifruje text a výsledek se ohodnotí pomocí <code>plausibility</code>. Lepší kandidát se přijme vždy. Horší kandidát se přijme s pravděpodobností <code>0.01</code>, aby hledání nezůstalo uvězněné v lokálním maximu. Během běhu se zvlášť drží aktuální klíč a nejlepší nalezený klíč.</p>
 </div>
 </div>
 </div>
@@ -8471,7 +8722,7 @@ Skóre přeházeného textu: -247.5802980799379
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="15.-Povinn%C3%A9-funk%C4%8Dn%C3%AD-API">15. Povinné funkční API<a class="anchor-link" href="#15.-Povinn%C3%A9-funk%C4%8Dn%C3%AD-API">¶</a></h2><p>Následující buňka vypíše skutečné podpisy veřejných funkcí požadovaných zadáním.</p>
+<h2 id="17.-Povinn%C3%A1-%C4%8D%C3%A1st-a-roz%C5%A1%C3%AD%C5%99en%C3%AD">17. Povinná část a rozšíření<a class="anchor-link" href="#17.-Povinn%C3%A1-%C4%8D%C3%A1st-a-roz%C5%A1%C3%AD%C5%99en%C3%AD">¶</a></h2><p>Povinnou část tvoří funkce ze zadání a jeden běh M-H algoritmu. Rozšíření jsou <code>polish_key</code>, restarty v objektovém API a paralelní zpracování celých souborů. Tato rozšíření nemění šifru ani pravidla M-H algoritmu.</p>
 </div>
 </div>
 </div>
@@ -8480,7 +8731,7 @@ Skóre přeházeného textu: -247.5802980799379
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [14]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [16]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="k">for</span> <span class="n">function</span> <span class="ow">in</span> <span class="p">[</span>
@@ -8516,43 +8767,13 @@ prolom_substitute (text: 'str', TM_ref: 'np.ndarray', iter: 'int', start_key: 's
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=object-api">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=required-api-vysledek">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="16.-Objektov%C3%A9-API">16. Objektové API<a class="anchor-link" href="#16.-Objektov%C3%A9-API">¶</a></h2><p><code>SubstitutionCipher</code> je pohodlná fasáda. <code>CrackResult</code> obsahuje <code>plaintext</code>, <code>key</code>, <code>score</code>, <code>restart</code> a <code>iterations</code>.</p>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=object-api-kod">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [15]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">cipher</span> <span class="o">=</span> <span class="n">SubstitutionCipher</span><span class="o">.</span><span class="n">from_matrix_file</span><span class="p">(</span><span class="n">REFERENCE_MATRIX_PATH</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">cipher</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"Matice načtena:"</span><span class="p">,</span> <span class="n">cipher</span><span class="o">.</span><span class="n">reference_matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>SubstitutionCipher
-Matice načtena: (27, 27)
-</pre>
-</div>
+<p>Podpisy funkcí odpovídají požadovanému veřejnému API.</p>
 </div>
 </div>
 </div>
@@ -8563,7 +8784,7 @@ Matice načtena: (27, 27)
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="17.-Kr%C3%A1tk%C3%A1-demonstra%C4%8Dn%C3%AD-kryptoanal%C3%BDza">17. Krátká demonstrační kryptoanalýza<a class="anchor-link" href="#17.-Kr%C3%A1tk%C3%A1-demonstra%C4%8Dn%C3%AD-kryptoanal%C3%BDza">¶</a></h2><p>Tato ukázka používá malý počet iterací, aby notebook běžel rychle. Nejde o finální dávkové dešifrování.</p>
+<h2 id="18.-Kr%C3%A1tk%C3%A1-demonstra%C4%8Dn%C3%AD-kryptoanal%C3%BDza">18. Krátká demonstrační kryptoanalýza<a class="anchor-link" href="#18.-Kr%C3%A1tk%C3%A1-demonstra%C4%8Dn%C3%AD-kryptoanal%C3%BDza">¶</a></h2><p>Následující ukázka používá jen několik iterací. Cílem není dosáhnout perfektního výsledku, ale ukázat, jak se funkce volá a jaký typ výsledku vrací.</p>
 </div>
 </div>
 </div>
@@ -8572,7 +8793,7 @@ Matice načtena: (27, 27)
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [16]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [17]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">demo_plaintext</span> <span class="o">=</span> <span class="s2">"AHOJ_SVETE_TOTO_JE_KRATKA_UKAZKA"</span>
@@ -8616,13 +8837,76 @@ Iterace: 20
 </div>
 </div>
 </div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=short-crack-vysledek">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Krátký běh ukazuje návratový formát <code>(key, plaintext, score)</code>, nikoli finální kvalitu dešifrování.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=object-api">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="19.-Pou%C5%BEit%C3%AD-objektov%C3%A9ho-API">19. Použití objektového API<a class="anchor-link" href="#19.-Pou%C5%BEit%C3%AD-objektov%C3%A9ho-API">¶</a></h2><p>Objekt <code>SubstitutionCipher</code> drží referenční matici a nabízí pohodlné metody pro šifrování, dešifrování, skórování i prolomení textu.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=object-api-kod">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [18]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">cipher</span> <span class="o">=</span> <span class="n">SubstitutionCipher</span><span class="o">.</span><span class="n">from_matrix_file</span><span class="p">(</span><span class="n">REFERENCE_MATRIX_PATH</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">cipher</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Matice načtena:"</span><span class="p">,</span> <span class="n">cipher</span><span class="o">.</span><span class="n">reference_matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>SubstitutionCipher
+Matice načtena: (27, 27)
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=object-api-vysledek">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Objektové API používá stejnou implementaci, jen pohodlně drží referenční matici.</p>
+</div>
+</div>
+</div>
+</div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=single-file">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="18.-Zpracov%C3%A1n%C3%AD-jednoho-souboru">18. Zpracování jednoho souboru<a class="anchor-link" href="#18.-Zpracov%C3%A1n%C3%AD-jednoho-souboru">¶</a></h2><p>Metoda <code>crack_file</code> načte soubor ve tvaru <code>text_1000_sample_1_ciphertext.txt</code> a uloží dvojici <code>plaintext</code> a <code>key</code>. Ukázka používá dočasnou složku a jeden velmi krátký soubor.</p>
+<h2 id="20.-Zpracov%C3%A1n%C3%AD-jednoho-souboru">20. Zpracování jednoho souboru<a class="anchor-link" href="#20.-Zpracov%C3%A1n%C3%AD-jednoho-souboru">¶</a></h2><p>Metoda <code>crack_file</code> přečte jeden ciphertext, spustí kryptoanalýzu a uloží plaintext i klíč ve formátu požadovaném zadáním. V notebooku se používá dočasná složka.</p>
 </div>
 </div>
 </div>
@@ -8631,7 +8915,7 @@ Iterace: 20
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [17]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [19]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">()</span> <span class="k">as</span> <span class="n">tmp</span><span class="p">:</span>
@@ -8654,12 +8938,23 @@ Iterace: 20
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Restart 1/1 nejlepší plausibility: -12.376037834426118
-Celkově nejlepší restart: 1, plausibility: -12.376037834426118
+<pre>Restart 1/1 nejlepší plausibility: -13.172959886383826
+Celkově nejlepší restart: 1, plausibility: -13.172959886383826
 ['text_3_sample_1_key.txt', 'text_3_sample_1_plaintext.txt']
 1
 </pre>
 </div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=single-file-vysledek">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Ukázka vytvoří dvojici souborů plaintext/key pro jeden ciphertext v dočasné složce.</p>
 </div>
 </div>
 </div>
@@ -8670,7 +8965,7 @@ Celkově nejlepší restart: 1, plausibility: -12.376037834426118
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="19.-Zpracov%C3%A1n%C3%AD-cel%C3%A9-slo%C5%BEky">19. Zpracování celé složky<a class="anchor-link" href="#19.-Zpracov%C3%A1n%C3%AD-cel%C3%A9-slo%C5%BEky">¶</a></h2><p>Metoda <code>crack_directory</code> zpracuje všechny ciphertexty ve složce <code>data/ciphertexts/</code> a uloží výstupy do <code>outputs/</code>. V notebooku se plný běh nespouští, protože může trvat dlouho.</p>
+<h2 id="21.-Zpracov%C3%A1n%C3%AD-cel%C3%A9-slo%C5%BEky">21. Zpracování celé složky<a class="anchor-link" href="#21.-Zpracov%C3%A1n%C3%AD-cel%C3%A9-slo%C5%BEky">¶</a></h2><p>Celou složku zpracovává <code>scripts/decrypt_samples.py</code>. Notebook plný běh nespouští, protože 60 souborů po 20 000 iteracích může trvat dlouho.</p>
 </div>
 </div>
 </div>
@@ -8679,7 +8974,7 @@ Celkově nejlepší restart: 1, plausibility: -12.376037834426118
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [18]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [20]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">ciphertext_files</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">CIPHERTEXT_DIR</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">"text_*_sample_*_ciphertext.txt"</span><span class="p">))</span>
@@ -8707,13 +9002,24 @@ python scripts\decrypt_samples.py --matrix models\TM_ref.npy --input-directory d
 </div>
 </div>
 </div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=directory-vysledek">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Plný příkaz zahrnuje i <code>--workers 0</code>, tedy automatické paralelní zpracování celých souborů.</p>
+</div>
+</div>
+</div>
+</div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=teacher-check">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="20.-Kontrola-u%C4%8Ditelsk%C3%A9ho-p%C5%99%C3%ADkladu">20. Kontrola učitelského příkladu<a class="anchor-link" href="#20.-Kontrola-u%C4%8Ditelsk%C3%A9ho-p%C5%99%C3%ADkladu">¶</a></h2><p>Teacher plaintext a key se používají pouze pro následnou kontrolu, nikdy během hledání. Pokud nový výstup ještě neexistuje, notebook vypíše jasnou zprávu.</p>
+<h2 id="22.-Vyhodnocen%C3%AD-zn%C3%A1m%C3%A9ho-u%C4%8Ditelsk%C3%A9ho-p%C5%99%C3%ADkladu">22. Vyhodnocení známého učitelského příkladu<a class="anchor-link" href="#22.-Vyhodnocen%C3%AD-zn%C3%A1m%C3%A9ho-u%C4%8Ditelsk%C3%A9ho-p%C5%99%C3%ADkladu">¶</a></h2><p>Učitelský plaintext a klíč slouží pouze ke kontrole hotového výstupu. Nepoužívají se při hledání klíče ani při výběru kandidátů.</p>
 </div>
 </div>
 </div>
@@ -8722,7 +9028,7 @@ python scripts\decrypt_samples.py --matrix models\TM_ref.npy --input-directory d
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [19]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [21]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">teacher_plaintext_path</span> <span class="o">=</span> <span class="n">TEACHER_EXAMPLE_DIR</span> <span class="o">/</span> <span class="s2">"text_1000_sample_1_plaintext.txt"</span>
@@ -8730,17 +9036,31 @@ python scripts\decrypt_samples.py --matrix models\TM_ref.npy --input-directory d
 <span class="n">output_plaintext_path</span> <span class="o">=</span> <span class="n">OUTPUT_DIR</span> <span class="o">/</span> <span class="s2">"text_1000_sample_1_plaintext.txt"</span>
 <span class="n">output_key_path</span> <span class="o">=</span> <span class="n">OUTPUT_DIR</span> <span class="o">/</span> <span class="s2">"text_1000_sample_1_key.txt"</span>
 
-<span class="k">if</span> <span class="n">teacher_plaintext_path</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="n">output_plaintext_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+<span class="k">if</span> <span class="n">output_plaintext_path</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="n">output_key_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
     <span class="n">teacher_plaintext</span> <span class="o">=</span> <span class="n">teacher_plaintext_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
     <span class="n">output_plaintext</span> <span class="o">=</span> <span class="n">output_plaintext_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-    <span class="n">matching</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">a</span> <span class="o">==</span> <span class="n">b</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">teacher_plaintext</span><span class="p">,</span> <span class="n">output_plaintext</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">"Shodné znaky:"</span><span class="p">,</span> <span class="n">matching</span><span class="p">,</span> <span class="s2">"/"</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">teacher_plaintext</span><span class="p">))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">"Procento shody:"</span><span class="p">,</span> <span class="n">matching</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">teacher_plaintext</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">"Plaintext přesně:"</span><span class="p">,</span> <span class="n">teacher_plaintext</span> <span class="o">==</span> <span class="n">output_plaintext</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">teacher_key_path</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="n">output_key_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">"Key přesně:"</span><span class="p">,</span> <span class="n">teacher_key_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="n">output_key_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+    <span class="n">teacher_key</span> <span class="o">=</span> <span class="n">teacher_key_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="n">output_key</span> <span class="o">=</span> <span class="n">output_key_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+    <span class="n">matches</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">a</span> <span class="o">==</span> <span class="n">b</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">teacher_plaintext</span><span class="p">,</span> <span class="n">output_plaintext</span><span class="p">))</span>
+    <span class="n">key_differences</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ALPHABET</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="p">(</span><span class="n">expected</span><span class="p">,</span> <span class="n">found</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">teacher_key</span><span class="p">,</span> <span class="n">output_key</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">expected</span> <span class="o">!=</span> <span class="n">found</span>
+    <span class="p">]</span>
+    <span class="n">missing_in_plaintext</span> <span class="o">=</span> <span class="p">[</span><span class="n">char</span> <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">key_differences</span> <span class="k">if</span> <span class="n">char</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">teacher_plaintext</span><span class="p">]</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Shoda plaintextu: </span><span class="si">{</span><span class="n">matches</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">teacher_plaintext</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Klíč je znak po znaku stejný:"</span><span class="p">,</span> <span class="n">teacher_key</span> <span class="o">==</span> <span class="n">output_key</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Rozdíly v klíči u znaků:"</span><span class="p">,</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">key_differences</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">"žádné"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Tyto znaky nejsou v plaintextu:"</span><span class="p">,</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">missing_in_plaintext</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">"žádné"</span><span class="p">)</span>
 <span class="k">else</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">"Nový finální výstup zatím není vytvořen. Nejdříve spusťte dávkové dešifrování."</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Finální výstup pro učitelský příklad není v outputs/ k dispozici."</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Známý výsledek posledního kontrolního běhu:"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Shoda plaintextu: 1000/1000"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Klíč není znak po znaku stejný."</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Rozdíly v klíči jsou u znaků: F, Q, W"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Tyto znaky se v daném plaintextu nevyskytují, proto jejich mapování nelze z tohoto ciphertextu jednoznačně určit."</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -8753,12 +9073,23 @@ python scripts\decrypt_samples.py --matrix models\TM_ref.npy --input-directory d
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Shodné znaky: 1000 / 1000
-Procento shody: 100.0
-Plaintext přesně: True
-Key přesně: False
+<pre>Shoda plaintextu: 1000/1000
+Klíč je znak po znaku stejný: False
+Rozdíly v klíči u znaků: F, Q, W
+Tyto znaky nejsou v plaintextu: F, Q, W
 </pre>
 </div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=teacher-check-vysledek">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Rozdíly u znaků, které se v plaintextu nevyskytují, nejsou důkazem špatného dešifrování daného textu.</p>
 </div>
 </div>
 </div>
@@ -8769,18 +9100,8 @@ Key přesně: False
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="21.-Omezen%C3%AD">21. Omezení<a class="anchor-link" href="#21.-Omezen%C3%AD">¶</a></h2><p>Metropolis-Hastingsův algoritmus je náhodný a různé seedy mohou vést k různým výsledkům. Kratší texty jsou obtížnější, protože obsahují méně bigramů. Bigramový model nemusí vždy najít přesný plaintext. Pokud se některý znak v ciphertextu nevyskytuje, část klíče nemusí být jednoznačně určitelná.</p>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=conclusion">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="22.-Z%C3%A1v%C4%9Br">22. Závěr<a class="anchor-link" href="#22.-Z%C3%A1v%C4%9Br">¶</a></h2><p>Knihovna implementuje šifrování, dešifrování, bigramovou matici, věrohodnost textu a M-H prolomení substituční šifry. Referenční matice vzniká z Války s mloky a ukládá se do <code>models/TM_ref.npy</code>. Finální dávkové dešifrování spouští <code>scripts/decrypt_samples.py</code> a výsledky ukládá do <code>outputs/</code>.</p>
+<h2 id="23.-Omezen%C3%AD-%C5%99e%C5%A1en%C3%AD-a-z%C3%A1v%C4%9Br">23. Omezení řešení a závěr<a class="anchor-link" href="#23.-Omezen%C3%AD-%C5%99e%C5%A1en%C3%AD-a-z%C3%A1v%C4%9Br">¶</a></h2><p>Použitý model pracuje jen s bigramy. Krátké ciphertexty proto mohou zůstat nejednoznačné a některé znaky klíče nelze určit, pokud se odpovídající znaky v plaintextu nevyskytují. Výsledek závisí také na náhodném startu M-H algoritmu, počtu iterací a podobnosti referenčního textu s plaintextem.</p>
+<p>Projekt přesto pokrývá povinnou substituční šifru, bigramovou matici, věrohodnost, M-H prolomení, export výsledků a praktické dávkové zpracování souborů ze zadání.</p>
 </div>
 </div>
 </div>

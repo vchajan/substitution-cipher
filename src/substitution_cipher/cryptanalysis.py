@@ -32,12 +32,14 @@ def plausibility(text: str, TM_ref: np.ndarray) -> float:
     """Ohodnotí text podle referenčních četností bigramů."""
     reference = _validate_reference_matrix(TM_ref)
     observed = absolute_bigram_matrix(get_bigrams(text))
+    # Skóre je součet log-pravděpodobností bigramů vážený jejich četností v textu.
     return float(np.sum(np.log(reference) * observed))
 
 
 def _swap_two_random_characters(key: str, rng: random.Random) -> str:
     """Vrátí klíč s prohozenými dvěma náhodnými pozicemi."""
     chars = list(key)
+    # Jedna výměna dvou znaků zachová platnou permutaci celé abecedy.
     first, second = rng.sample(range(len(chars)), 2)
     chars[first], chars[second] = chars[second], chars[first]
     return "".join(chars)
@@ -67,6 +69,7 @@ def polish_key(
 
         for first in range(len(ALPHABET) - 1):
             for second in range(first + 1, len(ALPHABET)):
+                # Lokální dolaďování už není náhodné: zkusí všechny dvojice a vezme nejlepší zlepšení.
                 candidate_chars = list(best_key)
                 candidate_chars[first], candidate_chars[second] = (
                     candidate_chars[second],
@@ -126,11 +129,13 @@ def _run_metropolis_hastings(
         candidate_text = substitute_decrypt(text, candidate_key)
         candidate_score = plausibility(candidate_text, TM_ref)
 
+        # Horší klíč občas přijmeme, aby hledání nezůstalo uvězněné v lokálním maximu.
         if candidate_score > current_score or rng.random() < 0.01:
             current_key = candidate_key
             current_text = candidate_text
             current_score = candidate_score
 
+        # Aktuální klíč se může dočasně zhoršit, nejlepší nalezený si proto držíme zvlášť.
         if current_score > best_score:
             best_key = current_key
             best_text = current_text

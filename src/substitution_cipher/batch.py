@@ -70,6 +70,7 @@ def derive_file_seed(base_seed: int | None, file_index: int) -> int | None:
     """Odvodí stabilní seed pro soubor podle jeho pořadí."""
     if base_seed is None:
         return None
+    # Nepoužíváme hash(), protože jeho výsledek nemusí být stabilní mezi běhy Pythonu.
     return base_seed + file_index
 
 
@@ -155,6 +156,7 @@ def _crack_file_worker(task: FileCrackTask) -> FileCrackSummary:
             success=True,
         )
     except Exception as exc:  # noqa: BLE001 - chyba jednoho souboru nesmí zastavit dávku.
+        # Worker chybu vrátí hlavnímu procesu; ostatní soubory tak mohou doběhnout.
         return FileCrackSummary(
             input_path=task.input_path,
             plaintext_path=plaintext_path,
@@ -188,6 +190,7 @@ def crack_files(
     output_dir = Path(output_directory)
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    # Paralelizujeme celé soubory, protože M-H iterace uvnitř jednoho běhu na sebe navazují.
     worker_count = resolve_worker_count(workers, file_count=len(files))
     quiet = worker_count > 1
     tasks = build_file_tasks(

@@ -14,8 +14,8 @@ run.bat
 Nebo z terminálu:
 
 ```powershell
-install
-run
+.\install.bat
+.\run.bat
 ```
 
 `install.bat` vytvoří virtuální prostředí a nainstaluje projekt. `run.bat` připraví referenční text, vytvoří matici `models/TM_ref.npy`, spustí testy, zkontroluje soubory zadání, spustí dešifrování a vytvoří vyhodnocení.
@@ -101,6 +101,26 @@ plaintext = cipher.decrypt(ciphertext, key)
 
 ## Příprava Války s mloky
 
+Surový text se získává z českých Wikizdrojů přes MediaWiki API:
+
+```text
+https://cs.wikisource.org/w/api.php
+```
+
+Použitá stránka díla je `Válka_s_Mloky`. Stažení a čištění jsou oddělené kroky:
+
+```powershell
+python scripts\download_reference_text.py
+python scripts\prepare_reference_text.py
+python scripts\build_reference_matrix.py
+```
+
+`download_reference_text.py` stáhne vlastní obsah díla a uloží ho jako UTF-8. Bez `--force` nepřepisuje už existující lokální soubor.
+
+`prepare_reference_text.py` odstraní diakritiku, převede text na velká písmena, oddělovače převede na `_` a ponechá pouze `A-Z_`.
+
+`build_reference_matrix.py` vytvoří finální bigramovou matici `models/TM_ref.npy`.
+
 Surový text je uložen zde:
 
 ```text
@@ -119,7 +139,7 @@ Výstup:
 data/reference/valka_s_mloky_clean.txt
 ```
 
-Čištění odstraní diakritiku, převede text na velká písmena, oddělovače převede na `_` a ponechá pouze `A-Z_`.
+Pokud už soubor existuje, není potřeba knihu stahovat znovu.
 
 ## Referenční matice
 

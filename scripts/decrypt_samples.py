@@ -128,6 +128,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"Použité procesy: {worker_count}")
 
     start = time.perf_counter()
+    # Skript jen dešifruje soubory; vyhodnocovací report se spouští až po dokončení dávky.
     summaries = crack_files(
         files=files,
         matrix_path=args.matrix,

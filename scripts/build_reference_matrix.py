@@ -35,6 +35,7 @@ def build_reference_matrix(
     if total <= 0.0:
         raise ValueError("Nelze normalizovat matici s nulovým součtem.")
 
+    # Po vyhlazení nul se absolutní četnosti převedou na relativní pravděpodobnosti.
     matrix = absolute / total
     save_matrix(matrix, output_path)
     return matrix, len(bigrams)

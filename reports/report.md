@@ -26,6 +26,14 @@ Jediným referenčním textem je **Válka s mloky**. Surový text je uložen v:
 data/reference/valka_s_mloky_raw.txt
 ```
 
+Text se stahuje z českých Wikizdrojů přes MediaWiki API:
+
+```text
+https://cs.wikisource.org/w/api.php
+```
+
+Skript `scripts/download_reference_text.py` načte vlastní obsah díla, případné podstránky spojí do jednoho souboru a neukládá navigaci webu. Aktuální raw text má přes čtyři sta tisíc znaků, což je pro odhad bigramových četností dostatečná délka.
+
 Vyčištěný text je uložen v:
 
 ```text
@@ -36,7 +44,7 @@ Tento text byl zvolen jako dostatečně dlouhý český text pro odhad četnost�
 
 ## Příprava textu
 
-Skript `scripts/prepare_reference_text.py` načte surový text jako UTF-8, odstraní diakritiku, převede písmena na velká, oddělovače sjednotí na `_` a ponechá pouze znaky `A-Z_`.
+Skript `scripts/prepare_reference_text.py` načte surový text jako UTF-8, odstraní diakritiku, převede písmena na velká, oddělovače sjednotí na `_` a ponechá pouze znaky `A-Z_`. Na vyčištěný text potom navazuje `scripts/build_reference_matrix.py`, který z něj vytvoří matici `models/TM_ref.npy`.
 
 ## Bigramy
 
