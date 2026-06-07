@@ -23,11 +23,11 @@ plausibility(text, TM_ref)
 prolom_substitute(text, TM_ref, iter, start_key=None)
 ```
 
-Vedle toho jsem přidal objektové rozhraní `SubstitutionCipher`, dávkové zpracování více souborů a volitelné lokální doladění klíče po skončení hlavního hledání.
+Vedle toho přidali jsme objektové rozhraní `SubstitutionCipher`, dávkové zpracování více souborů a volitelné lokální doladění klíče po skončení hlavního hledání.
 
 ## 2. Referenční text a příprava matice
 
-Pro odhad českých bigramových četností jsem použil pouze knihu **Válka s mloky** od Karla Čapka.
+Pro odhad českých bigramových četností použili jsme pouze knihu **Válka s mloky** od Karla Čapka.
 
 Text se dá stáhnout skriptem:
 
