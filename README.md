@@ -1,3 +1,10 @@
+# Vypracování semestrální práce - Tým č. 7
+
+Briedoň Peter
+Kret David
+Sýbek Ladislav
+Urban Jiří
+
 # Substituční šifra
 
 Python projekt pro šifrování, dešifrování a kryptoanalýzu klasické monoalfabetické substituční šifry. Řešení používá abecedu `ABCDEFGHIJKLMNOPQRSTUVWXYZ_`, kde `_` představuje mezeru. Referenční jazykový model je vytvořen pouze z knihy **Válka s mloky**.
