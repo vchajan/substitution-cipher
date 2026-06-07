@@ -1,13 +1,10 @@
-"""Dešifrování ciphertextů ze zadání pomocí projektové knihovny.
-
-Skript očekává názvy ve tvaru ``text_1000_sample_20_ciphertext.txt`` a exportuje
-plaintext/key soubory ve formátu požadovaném zadáním.
-"""
+"""Dávkové dešifrování ciphertextů ze zadání."""
 
 from __future__ import annotations
 
 import argparse
 import sys
+import time
 from pathlib import Path
 
 
@@ -17,54 +14,48 @@ SRC_DIR = PROJECT_ROOT / "src"
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
-from substitution_cipher.api import (  # noqa: E402
-    SubstitutionCipher,
-    parse_ciphertext_filename as _api_parse_ciphertext_filename,
+from substitution_cipher.batch import (  # noqa: E402
+    crack_files,
+    find_ciphertext_files as _find_ciphertext_files,
+    resolve_worker_count,
 )
-
-
-def parse_ciphertext_filename(path: str | Path) -> tuple[int, int]:
-    """Získá délku textu a ID vzorku z názvu ciphertext souboru."""
-    return _api_parse_ciphertext_filename(path)
+from substitution_cipher.paths import CIPHERTEXT_DIR, OUTPUT_DIR, REFERENCE_MATRIX_PATH  # noqa: E402
 
 
 def find_ciphertext_files(input_dir: str | Path) -> list[Path]:
-    """Vrátí číselně seřazené ciphertext soubory ze složky ``input_dir``."""
-    directory = Path(input_dir)
-    if not directory.exists():
-        return []
-    return sorted(
-        directory.glob("text_*_sample_*_ciphertext.txt"),
-        key=parse_ciphertext_filename,
-    )
+    """Vrátí číselně seřazené ciphertext soubory ze složky."""
+    return _find_ciphertext_files(input_dir)
 
 
 def decrypt_file(
     ciphertext_path: str | Path,
-    cipher: SubstitutionCipher,
+    matrix_path: str | Path,
     output_directory: str | Path,
     iterations: int,
     restarts: int = 1,
     seed: int | None = None,
     polish: bool = True,
 ):
-    """Dešifruje jeden ciphertext soubor a exportuje plaintext/key soubory."""
-    return cipher.crack_file(
-        input_path=ciphertext_path,
+    """Dešifruje jeden soubor přes dávkové knihovní API."""
+    summaries = crack_files(
+        files=[Path(ciphertext_path)],
+        matrix_path=matrix_path,
         output_directory=output_directory,
         iterations=iterations,
         restarts=restarts,
         seed=seed,
         polish=polish,
+        workers=1,
     )
+    return summaries[0]
 
 
-def main() -> None:
-    """Spustí dávkové dešifrování všech ciphertextů ve vstupní složce."""
+def build_parser() -> argparse.ArgumentParser:
+    """Sestaví parser argumentů příkazové řádky."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--matrix",
-        default=PROJECT_ROOT / "data" / "processed" / "TM_ref_krakatit.npy",
+        default=REFERENCE_MATRIX_PATH,
         type=Path,
         help="Cesta k referenční bigramové matici ve formátu .npy.",
     )
@@ -72,7 +63,7 @@ def main() -> None:
         "--input-directory",
         "--input-dir",
         dest="input_directory",
-        default=PROJECT_ROOT / "data" / "ciphertexts",
+        default=CIPHERTEXT_DIR,
         type=Path,
         help="Složka se soubory text_{length}_sample_{id}_ciphertext.txt.",
     )
@@ -80,19 +71,19 @@ def main() -> None:
         "--output-directory",
         "--output-dir",
         dest="output_directory",
-        default=PROJECT_ROOT / "outputs",
+        default=OUTPUT_DIR,
         type=Path,
         help="Složka pro export plaintext/key souborů.",
     )
     parser.add_argument(
         "--iterations",
-        default=10_000,
+        default=20_000,
         type=int,
         help="Počet iterací Metropolis-Hastingsova algoritmu na jeden ciphertext.",
     )
     parser.add_argument(
         "--restarts",
-        default=2,
+        default=1,
         type=int,
         help="Počet nezávislých restartů na jeden ciphertext.",
     )
@@ -102,25 +93,72 @@ def main() -> None:
         action="store_true",
         help="Vypne lokální dolaďování klíče po každém M-H běhu.",
     )
-    args = parser.parse_args()
+    parser.add_argument(
+        "--workers",
+        default=1,
+        type=int,
+        help=(
+            "Počet procesů pro paralelní zpracování souborů. "
+            "1 = sekvenčně, 0 = automaticky, N = nejvýše N procesů."
+        ),
+    )
+    return parser
 
-    input_directory = Path(args.input_directory)
-    if not input_directory.exists() or not list(input_directory.glob("*.txt")):
-        print(f"Nebyly nalezeny žádné ciphertext soubory v: {args.input_directory}")
-        return
 
-    cipher = SubstitutionCipher.from_matrix_file(args.matrix)
-    results = cipher.crack_directory(
-        input_directory=args.input_directory,
+def main(argv: list[str] | None = None) -> int:
+    """Spustí dávkové dešifrování všech dostupných ciphertextů."""
+    parser = build_parser()
+    args = parser.parse_args(argv)
+
+    files = find_ciphertext_files(args.input_directory)
+    if not files:
+        print(f"Ciphertext soubory zatím nejsou k dispozici v: {args.input_directory}")
+        return 0
+
+    try:
+        worker_count = resolve_worker_count(args.workers, file_count=len(files))
+    except ValueError as exc:
+        parser.error(str(exc))
+
+    print("===== DÁVKOVÉ DEŠIFROVÁNÍ =====")
+    print("Referenční text: Válka s mloky")
+    print(f"Referenční matice: {args.matrix}")
+    print(f"Počet iterací na ciphertext: {args.iterations}")
+    print(f"Počet restartů: {args.restarts}")
+    print(f"Použité procesy: {worker_count}")
+
+    start = time.perf_counter()
+    summaries = crack_files(
+        files=files,
+        matrix_path=args.matrix,
         output_directory=args.output_directory,
         iterations=args.iterations,
         restarts=args.restarts,
         seed=args.seed,
         polish=not args.no_polish,
+        workers=args.workers,
     )
-    print(f"Dešifrované soubory: {len(results)}")
+    elapsed = time.perf_counter() - start
+
+    successful = sum(summary.success for summary in summaries)
+    failed = len(summaries) - successful
+
+    print(f"Zpracované soubory: {len(summaries)}")
+    print(f"Úspěšné: {successful}")
+    print(f"Chyby: {failed}")
+    print(f"Použité procesy: {worker_count}")
+    print(f"Celkový čas: {elapsed:.2f} s")
     print(f"Výstupní složka: {args.output_directory}")
+
+    if failed:
+        print("Přehled chyb:")
+        for summary in summaries:
+            if not summary.success:
+                print(f"- {summary.input_path.name}: {summary.error}")
+        return 1
+
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

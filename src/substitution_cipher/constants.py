@@ -1,4 +1,4 @@
-"""Project-wide constants for the substitution cipher package."""
+"""Společné konstanty projektu."""
 
 ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ_"
 ALPHABET_SIZE = len(ALPHABET)

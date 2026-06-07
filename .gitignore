@@ -1,45 +1,38 @@
+# Virtuální prostředí
+.venv/
+.venv-*/
+venv/
+env/
+
 # Python cache
 __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
 
-# Virtual environments
-.venv/
-.venv-*/
-venv/
-env/
-
-# Test / lint / type-check cache
+# Testy a nástroje
 .pytest_cache/
 .pytest_cache_tmp/
 .pytest_tmp/
 .mypy_cache/
 .ruff_cache/
 
-# Build / packaging
+# Build artefakty
 build/
 dist/
 *.egg-info/
 
-# Jupyter
+# Notebooky
 .ipynb_checkpoints/
 
-# OS / editor
-.DS_Store
-Thumbs.db
+# Editory a systémové soubory
 .vscode/
 .idea/
+.DS_Store
+Thumbs.db
 
-# Wikisource cache
-data/cache_wikisource/
-
-# Raw downloaded text can be regenerated
-data/raw/*
-!data/raw/.gitkeep
-
-# Mock expected files are only for local development
-data/mock_expected/
-
-# Temporary local files
-data/processed/zadani_extracted.txt
+# Lokální dočasné soubory a cache
+data/cache/
+tmp/
+*.tmp
+*.bak

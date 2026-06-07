@@ -1,0 +1,1 @@
+"""Pomocné spouštěcí skripty projektu."""

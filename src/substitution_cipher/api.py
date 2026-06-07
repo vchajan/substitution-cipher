@@ -1,34 +1,28 @@
-"""Object-oriented convenience API for the substitution cipher project."""
+"""Objektové rozhraní nad povinnými funkcemi zadání."""
 
 from __future__ import annotations
 
 import random
-import re
 from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
 
-from .bigrams import get_bigrams, load_matrix, save_matrix, transition_matrix
+from .bigrams import get_bigrams, transition_matrix
 from .cipher import substitute_decrypt, substitute_encrypt, validate_key
-from .config import ALPHABET
+from .constants import ALPHABET
 from .cryptanalysis import (
     _run_metropolis_hastings,
     _validate_reference_matrix,
     plausibility,
     polish_key,
 )
-from .export_utils import export_result
-
-
-_CIPHERTEXT_PATTERN = re.compile(
-    r"^text_(?P<length>\d+)_sample_(?P<sample_id>\d+)_ciphertext\.txt$"
-)
+from .io_utils import export_result, load_matrix, parse_ciphertext_filename, save_matrix
 
 
 @dataclass(frozen=True)
 class CrackResult:
-    """Result of one ciphertext cracking run."""
+    """Výsledek jednoho pokusu o prolomení ciphertextu."""
 
     key: str
     plaintext: str
@@ -38,28 +32,17 @@ class CrackResult:
 
 
 def _validate_alphabet_text(text: str, label: str) -> None:
-    """Raise ``ValueError`` if ``text`` contains characters outside ``ALPHABET``."""
+    """Vyvolá chybu, pokud text obsahuje znaky mimo projektovou abecedu."""
     invalid = sorted(set(text) - set(ALPHABET))
     if invalid:
-        raise ValueError(f"{label} contains invalid characters: {invalid}")
-
-
-def _parse_ciphertext_filename(path: str | Path) -> tuple[int, int]:
-    """Parse text length and sample id from an assignment ciphertext filename."""
-    match = _CIPHERTEXT_PATTERN.match(Path(path).name)
-    if not match:
-        raise ValueError(
-            "Ciphertext filename must match "
-            "text_{length}_sample_{id}_ciphertext.txt"
-        )
-    return int(match.group("length")), int(match.group("sample_id"))
+        raise ValueError(f"{label} obsahuje nepovolené znaky: {invalid}")
 
 
 class SubstitutionCipher:
-    """Convenience wrapper around the assignment functions and matrix files."""
+    """Pohodlná fasáda nad povinným funkčním API."""
 
     def __init__(self, reference_matrix: np.ndarray | None = None) -> None:
-        """Create an API object with an optional reference matrix."""
+        """Vytvoří objekt s volitelně načtenou referenční maticí."""
         self.reference_matrix = (
             None
             if reference_matrix is None
@@ -67,42 +50,42 @@ class SubstitutionCipher:
         )
 
     def encrypt(self, plaintext: str, key: str) -> str:
-        """Encrypt ``plaintext`` with ``key``."""
+        """Zašifruje plaintext zadaným klíčem."""
         return substitute_encrypt(plaintext, key)
 
     def decrypt(self, ciphertext: str, key: str) -> str:
-        """Decrypt ``ciphertext`` with ``key``."""
+        """Dešifruje ciphertext zadaným klíčem."""
         return substitute_decrypt(ciphertext, key)
 
     def bigrams(self, text: str) -> list[str]:
-        """Return adjacent bigrams from ``text``."""
+        """Vrátí sousední bigramy z textu."""
         return get_bigrams(text)
 
     def build_reference_matrix(self, text: str) -> np.ndarray:
-        """Build and store a smoothed relative reference matrix from clean text."""
+        """Vytvoří a uloží relativní referenční matici z čistého textu."""
         _validate_alphabet_text(text, "Reference text")
         absolute = transition_matrix(get_bigrams(text))
         total = float(absolute.sum())
         if total <= 0.0:
-            raise ValueError("Cannot normalize a matrix with zero total count.")
+            raise ValueError("Nelze normalizovat matici s nulovým součtem.")
         self.reference_matrix = absolute / total
         return self.reference_matrix
 
     @classmethod
     def from_matrix_file(cls, path: str | Path) -> "SubstitutionCipher":
-        """Create an API object from a saved NumPy reference matrix."""
+        """Vytvoří objekt z uložené NumPy matice."""
         return cls(load_matrix(path))
 
     def save_reference_matrix(self, path: str | Path) -> None:
-        """Save the currently loaded reference matrix."""
+        """Uloží aktuálně načtenou referenční matici."""
         if self.reference_matrix is None:
-            raise ValueError("Reference matrix is not loaded.")
+            raise ValueError("Referenční matice není načtená.")
         save_matrix(self.reference_matrix, path)
 
     def score(self, text: str) -> float:
-        """Return plausibility score for ``text`` using the stored matrix."""
+        """Spočítá věrohodnost textu podle načtené matice."""
         if self.reference_matrix is None:
-            raise ValueError("Reference matrix is not loaded.")
+            raise ValueError("Referenční matice není načtená.")
         return plausibility(text, self.reference_matrix)
 
     def crack(
@@ -115,13 +98,13 @@ class SubstitutionCipher:
         polish: bool = True,
         progress_every: int = 50,
     ) -> CrackResult:
-        """Crack one ciphertext, optionally using repeated M-H restarts."""
+        """Prolomí jeden ciphertext, volitelně s více restarty."""
         if self.reference_matrix is None:
-            raise ValueError("Reference matrix is not loaded.")
+            raise ValueError("Referenční matice není načtená.")
         if iterations < 1:
-            raise ValueError("iterations must be at least 1.")
+            raise ValueError("iterations musí být alespoň 1.")
         if restarts < 1:
-            raise ValueError("restarts must be at least 1.")
+            raise ValueError("restarts musí být alespoň 1.")
 
         _validate_alphabet_text(ciphertext, "Ciphertext")
         if start_key is not None:
@@ -154,7 +137,7 @@ class SubstitutionCipher:
 
             print(
                 f"Restart {restart_index + 1}/{restarts} "
-                f"best plausibility: {score}"
+                f"nejlepší plausibility: {score}"
             )
 
             if best_result is None or result.score > best_result.score:
@@ -162,7 +145,7 @@ class SubstitutionCipher:
 
         assert best_result is not None
         print(
-            f"Overall best restart: {best_result.restart}, "
+            f"Celkově nejlepší restart: {best_result.restart}, "
             f"plausibility: {best_result.score}"
         )
         return best_result
@@ -175,10 +158,11 @@ class SubstitutionCipher:
         restarts: int = 1,
         seed: int | None = None,
         polish: bool = True,
+        progress_every: int = 50,
     ) -> CrackResult:
-        """Crack one assignment ciphertext file and export plaintext/key files."""
+        """Prolomí jeden soubor zadání a uloží plaintext i klíč."""
         path = Path(input_path)
-        text_length, sample_id = _parse_ciphertext_filename(path)
+        text_length, sample_id = parse_ciphertext_filename(path)
         ciphertext = path.read_text(encoding="utf-8").strip()
         _validate_alphabet_text(ciphertext, "Ciphertext")
 
@@ -188,6 +172,7 @@ class SubstitutionCipher:
             restarts=restarts,
             seed=seed,
             polish=polish,
+            progress_every=progress_every,
         )
         export_result(result.plaintext, result.key, text_length, sample_id, output_directory)
         return result
@@ -201,27 +186,27 @@ class SubstitutionCipher:
         seed: int | None = None,
         polish: bool = True,
     ) -> list[CrackResult]:
-        """Crack all assignment ciphertext files in a directory."""
+        """Prolomí všechny ciphertext soubory ve složce."""
         directory = Path(input_directory)
         if not directory.exists():
-            print(f"No ciphertext files found in: {directory}")
+            print(f"Ve složce nejsou ciphertext soubory: {directory}")
             return []
 
         txt_files = sorted(directory.glob("*.txt"))
         files: list[Path] = []
         for path in txt_files:
-            _parse_ciphertext_filename(path)
+            parse_ciphertext_filename(path)
             files.append(path)
 
-        files = sorted(files, key=_parse_ciphertext_filename)
+        files = sorted(files, key=parse_ciphertext_filename)
         if not files:
-            print(f"No ciphertext files found in: {directory}")
+            print(f"Ve složce nejsou ciphertext soubory: {directory}")
             return []
 
         results: list[CrackResult] = []
         for index, path in enumerate(files):
             file_seed = None if seed is None else seed + index * max(1, restarts)
-            print(f"Decrypting {path.name}")
+            print(f"Dešifruji {path.name}")
             result = self.crack_file(
                 input_path=path,
                 output_directory=output_directory,
@@ -231,9 +216,6 @@ class SubstitutionCipher:
                 polish=polish,
             )
             results.append(result)
-            print(f"Saved outputs for {path.name}")
+            print(f"Výstupy uloženy pro {path.name}")
 
         return results
-
-
-parse_ciphertext_filename = _parse_ciphertext_filename

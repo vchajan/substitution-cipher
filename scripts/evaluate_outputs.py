@@ -1,4 +1,4 @@
-"""Evaluate decrypted outputs against the teacher example and reference matrix."""
+"""Vyhodnocení výstupů proti známému učitelskému příkladu."""
 
 from __future__ import annotations
 
@@ -14,16 +14,19 @@ SRC_DIR = PROJECT_ROOT / "src"
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
-from substitution_cipher.bigrams import load_matrix  # noqa: E402
 from substitution_cipher.cipher import validate_key  # noqa: E402
 from substitution_cipher.cryptanalysis import plausibility  # noqa: E402
+from substitution_cipher.io_utils import load_matrix  # noqa: E402
+from substitution_cipher.paths import (  # noqa: E402
+    OUTPUT_DIR,
+    REFERENCE_MATRIX_PATH,
+    REPORT_DIR,
+    TEACHER_EXAMPLE_DIR,
+)
 
 
-TEACHER_EXAMPLE_DIR = PROJECT_ROOT / "data" / "teacher_example"
-OUTPUT_DIR = PROJECT_ROOT / "outputs"
-MATRIX_PATH = PROJECT_ROOT / "data" / "processed" / "TM_ref.npy"
-REPORT_MD_PATH = PROJECT_ROOT / "reports" / "evaluation_summary.md"
-REPORT_CSV_PATH = PROJECT_ROOT / "reports" / "evaluation_summary.csv"
+REPORT_MD_PATH = REPORT_DIR / "evaluation_summary.md"
+REPORT_CSV_PATH = REPORT_DIR / "evaluation_summary.csv"
 
 PLAINTEXT_PATTERN = re.compile(
     r"^text_(?P<length>\d+)_sample_(?P<sample_id>\d+)_plaintext\.txt$"
@@ -44,14 +47,14 @@ CSV_FIELDS = [
 
 
 def _read_optional(path: Path) -> str | None:
-    """Read a text file if it exists."""
+    """Načte textový soubor, pokud existuje."""
     if not path.exists():
         return None
     return path.read_text(encoding="utf-8").strip()
 
 
 def _parse_plaintext_filename(path: Path) -> tuple[int, int] | None:
-    """Parse length and sample id from a plaintext output filename."""
+    """Získá délku a ID vzorku z názvu plaintext výstupu."""
     match = PLAINTEXT_PATTERN.match(path.name)
     if not match:
         return None
@@ -59,12 +62,12 @@ def _parse_plaintext_filename(path: Path) -> tuple[int, int] | None:
 
 
 def _matching_characters(left: str, right: str) -> int:
-    """Count equal characters at the same positions."""
+    """Spočítá shodné znaky na stejných pozicích."""
     return sum(1 for first, second in zip(left, right, strict=False) if first == second)
 
 
 def _key_is_valid(key: str | None) -> bool:
-    """Return whether ``key`` is a valid substitution key."""
+    """Vrátí, zda je klíč platnou permutací abecedy."""
     if key is None:
         return False
     try:
@@ -75,7 +78,7 @@ def _key_is_valid(key: str | None) -> bool:
 
 
 def _format_optional(value: object) -> str:
-    """Format empty optional values for CSV/Markdown output."""
+    """Naformátuje volitelné hodnoty pro CSV a Markdown."""
     if value is None:
         return "N/A"
     if isinstance(value, float):
@@ -86,9 +89,9 @@ def _format_optional(value: object) -> str:
 def collect_evaluation_rows(
     teacher_dir: str | Path = TEACHER_EXAMPLE_DIR,
     output_dir: str | Path = OUTPUT_DIR,
-    matrix_path: str | Path = MATRIX_PATH,
+    matrix_path: str | Path = REFERENCE_MATRIX_PATH,
 ) -> list[dict[str, object]]:
-    """Collect evaluation rows for all plaintext outputs."""
+    """Nasbírá vyhodnocovací řádky pro všechny plaintext výstupy."""
     teacher_path = Path(teacher_dir)
     outputs_path = Path(output_dir)
     matrix = load_matrix(matrix_path)
@@ -136,7 +139,7 @@ def collect_evaluation_rows(
 
 
 def write_csv(rows: list[dict[str, object]], path: str | Path = REPORT_CSV_PATH) -> Path:
-    """Write evaluation rows as CSV."""
+    """Zapíše vyhodnocení do CSV."""
     output_path = Path(path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with output_path.open("w", encoding="utf-8", newline="") as handle:
@@ -148,18 +151,16 @@ def write_csv(rows: list[dict[str, object]], path: str | Path = REPORT_CSV_PATH)
 
 
 def write_markdown(rows: list[dict[str, object]], path: str | Path = REPORT_MD_PATH) -> Path:
-    """Write evaluation rows as a compact Markdown report."""
+    """Zapíše krátký Markdown souhrn vyhodnocení."""
     output_path = Path(path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     plaintext_count = len(rows)
     key_count = sum(1 for row in rows if row["key_file"])
-    teacher_rows = [
-        row
-        for row in rows
-        if row["length"] == 1000 and row["sample_id"] == 1
-    ]
-    teacher_row = teacher_rows[0] if teacher_rows else None
+    teacher_row = next(
+        (row for row in rows if row["length"] == 1000 and row["sample_id"] == 1),
+        None,
+    )
 
     lines = [
         "# Vyhodnocení výstupů",
@@ -168,6 +169,7 @@ def write_markdown(rows: list[dict[str, object]], path: str | Path = REPORT_MD_P
         "",
         f"- Počet plaintext souborů: {plaintext_count}",
         f"- Počet key souborů: {key_count}",
+        "- Referenční matice: `models/TM_ref.npy`",
         "",
         "## Učitelský příklad text_1000_sample_1",
         "",
@@ -209,11 +211,11 @@ def write_markdown(rows: list[dict[str, object]], path: str | Path = REPORT_MD_P
 def evaluate_outputs(
     teacher_dir: str | Path = TEACHER_EXAMPLE_DIR,
     output_dir: str | Path = OUTPUT_DIR,
-    matrix_path: str | Path = MATRIX_PATH,
+    matrix_path: str | Path = REFERENCE_MATRIX_PATH,
     report_md_path: str | Path = REPORT_MD_PATH,
     report_csv_path: str | Path = REPORT_CSV_PATH,
 ) -> tuple[list[dict[str, object]], Path, Path]:
-    """Evaluate outputs and write Markdown and CSV summaries."""
+    """Vyhodnotí výstupy a uloží Markdown i CSV souhrn."""
     rows = collect_evaluation_rows(teacher_dir, output_dir, matrix_path)
     csv_path = write_csv(rows, report_csv_path)
     md_path = write_markdown(rows, report_md_path)
@@ -221,12 +223,12 @@ def evaluate_outputs(
 
 
 def main() -> None:
-    """Run output evaluation with project default paths."""
+    """Spustí vyhodnocení s výchozími cestami projektu."""
     rows, md_path, csv_path = evaluate_outputs()
-    print("===== OUTPUT EVALUATION =====")
-    print(f"Evaluated plaintext files: {len(rows)}")
-    print(f"Saved Markdown summary to: {md_path}")
-    print(f"Saved CSV summary to: {csv_path}")
+    print("===== VYHODNOCENÍ VÝSTUPŮ =====")
+    print(f"Vyhodnocené plaintext soubory: {len(rows)}")
+    print(f"Markdown souhrn uložen do: {md_path}")
+    print(f"CSV souhrn uložen do: {csv_path}")
 
 
 if __name__ == "__main__":

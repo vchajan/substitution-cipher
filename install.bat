@@ -1,38 +1,35 @@
 @echo off
+chcp 65001 > nul
 setlocal
-chcp 65001 >nul
 
-cd /d "%~dp0"
+echo ===== INSTALACE PROJEKTU =====
 
-echo Instaluji projekt...
+python --version > nul 2>&1
+if errorlevel 1 (
+    echo Python není dostupný. Nainstalujte Python 3.10 nebo novější.
+    pause
+    exit /b 1
+)
 
-if not exist ".venv\Scripts\python.exe" (
+if not exist ".venv" (
     echo Vytvářím virtuální prostředí .venv...
     python -m venv .venv
-    if errorlevel 1 goto error
 ) else (
     echo Virtuální prostředí .venv už existuje.
 )
 
-echo Aktivuju virtuální prostředí...
-call ".venv\Scripts\activate.bat"
-if errorlevel 1 goto error
+call .venv\Scripts\activate.bat
 
 echo Aktualizuji pip...
 python -m pip install --upgrade pip
-if errorlevel 1 goto error
 
 echo Instaluji projekt včetně vývojových závislostí...
 python -m pip install -e ".[dev]"
-if errorlevel 1 goto error
+if errorlevel 1 (
+    echo Instalace selhala. Zkontrolujte zprávy výše.
+    pause
+    exit /b 1
+)
 
-echo.
 echo Instalace je hotová.
 pause
-exit /b 0
-
-:error
-echo.
-echo Instalace selhala. Zkontrolujte zprávy výše.
-pause
-exit /b 1

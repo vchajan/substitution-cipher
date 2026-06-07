@@ -1,67 +1,57 @@
 @echo off
+chcp 65001 > nul
 setlocal
-chcp 65001 >nul
 
-cd /d "%~dp0"
+echo ===== SPUŠTĚNÍ PROJEKTU =====
 
 if not exist ".venv\Scripts\activate.bat" (
-    echo Virtuální prostředí .venv nebylo nalezeno.
-    echo Nejdříve spusťte install.bat.
+    echo Virtuální prostředí neexistuje. Nejdříve spusťte install.bat.
     pause
     exit /b 1
 )
 
-echo Aktivuju virtuální prostředí...
-call ".venv\Scripts\activate.bat"
-if errorlevel 1 goto error
+call .venv\Scripts\activate.bat
 
-echo.
-echo Referenční matice: Krakatit
-echo Restarty: 2
-echo Iterace na restart: 10000
-echo Celkem iterací na jeden ciphertext: 20000
-echo.
+echo Referenční text: Válka s mloky
+echo Referenční matice: models\TM_ref.npy
+echo Počet iterací na ciphertext: 20000
+echo Paralelní zpracování: automatický počet procesů
 
-echo Kontroluji vstupní a výstupní soubory...
-python scripts\validate_assignment_files.py
-if errorlevel 1 goto error
-
-if not exist "data\ciphertexts" (
-    echo Složka data\ciphertexts nebyla nalezena.
-    echo Vytvořte ji a vložte do ní ciphertexty ze zadání.
+if not exist "data\reference\valka_s_mloky_raw.txt" (
+    echo Chybí data\reference\valka_s_mloky_raw.txt.
+    pause
+    exit /b 1
 )
 
-if not exist "data\processed\TM_ref_krakatit.npy" (
-    echo Referenční matice z Krakatitu nebyla nalezena.
-    echo Vytvářím referenční matice...
-    if exist "scripts\build_combined_reference_matrix.py" (
-        python scripts\build_combined_reference_matrix.py
-    ) else (
-        python scripts\build_reference_matrix.py
-    )
-)
-if errorlevel 1 goto error
+echo Připravuji referenční text...
+python scripts\prepare_reference_text.py
+if errorlevel 1 goto failed
+
+echo Vytvářím referenční matici...
+python scripts\build_reference_matrix.py
+if errorlevel 1 goto failed
 
 echo Spouštím testy...
 pytest
-if errorlevel 1 goto error
+if errorlevel 1 goto failed
 
-echo Spouštím finální dešifrování...
-python scripts\decrypt_samples.py --matrix data\processed\TM_ref_krakatit.npy --iterations 10000 --restarts 2
-if errorlevel 1 goto error
+echo Kontroluji soubory zadání...
+python scripts\validate_assignment_files.py
+if errorlevel 1 goto failed
 
-echo Vyhodnocuji výstupy...
+echo Spouštím dávkové dešifrování...
+python scripts\decrypt_samples.py --matrix models\TM_ref.npy --input-directory data\ciphertexts --output-directory outputs --iterations 20000 --restarts 1 --workers 0
+if errorlevel 1 goto failed
+
+echo Vytvářím vyhodnocení...
 python scripts\evaluate_outputs.py
-if errorlevel 1 goto error
+if errorlevel 1 goto failed
 
-echo.
-echo Běh je hotový.
-echo Pokud nejsou k dispozici žádné ciphertexty, je předchozí hláška v pořádku.
+echo Hotovo.
 pause
 exit /b 0
 
-:error
-echo.
-echo Běh selhal. Zkontrolujte zprávy výše.
+:failed
+echo Běh skončil chybou. Zkontrolujte zprávy výše.
 pause
 exit /b 1

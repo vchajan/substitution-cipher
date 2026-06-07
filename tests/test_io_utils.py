@@ -1,22 +1,19 @@
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from subcipher.io_utils import export_decryption_result, parse_ciphertext_filename
+from substitution_cipher import ALPHABET
+from substitution_cipher.io_utils import export_result, parse_ciphertext_filename
 
 
 def test_parse_ciphertext_filename():
-    length, sample_id = parse_ciphertext_filename("text_1000_sample_20_ciphertext.txt")
-    assert length == 1000
-    assert sample_id == 20
+    assert parse_ciphertext_filename("text_500_sample_12_ciphertext.txt") == (500, 12)
 
 
-def test_export_decryption_result():
-    output_root = Path("outputs")
-    output_root.mkdir(exist_ok=True)
+def test_export_result_creates_assignment_files():
+    with TemporaryDirectory(prefix="export_result_", dir="outputs") as directory:
+        plaintext_path, key_path = export_result("ABC", ALPHABET, 3, 2, directory)
 
-    with TemporaryDirectory(prefix="test_io_", dir=output_root) as directory:
-        plaintext_path, key_path = export_decryption_result(directory, 1000, 20, "ABC", "KEY")
-        assert plaintext_path.name == "text_1000_sample_20_plaintext.txt"
-        assert key_path.name == "text_1000_sample_20_key.txt"
-        assert plaintext_path.read_text(encoding="utf-8") == "ABC"
-        assert key_path.read_text(encoding="utf-8") == "KEY"
+        assert Path(plaintext_path).name == "text_3_sample_2_plaintext.txt"
+        assert Path(key_path).name == "text_3_sample_2_key.txt"
+        assert Path(plaintext_path).read_text(encoding="utf-8") == "ABC"
+        assert Path(key_path).read_text(encoding="utf-8") == ALPHABET
