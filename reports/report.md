@@ -1,364 +1,159 @@
-# Report
+# Report – prolomení substituční šifry
 
-## Cíl práce
+## 1. Co bylo cílem
 
-Cílem práce je implementovat klasickou monoalfabetickou substituční šifru a pokusit se ji prolomit pomocí bigramového jazykového modelu a Metropolis-Hastingsova algoritmu.
+Cílem projektu bylo vytvořit jednoduchou Python knihovnu pro monoalfabetickou substituční šifru a potom zkusit stejnou šifru prolomit bez znalosti původního textu.
 
-Řešení je vytvořené jako Python knihovna. Vedle povinných funkcí obsahuje také objektové API, dávkové zpracování souborů, volitelné lokální doladění klíče a paralelní zpracování více ciphertextů.
-
-## Abeceda
-
-Projekt používá pevnou abecedu:
+Použitá abeceda je:
 
 ```text
 ABCDEFGHIJKLMNOPQRSTUVWXYZ_
 ```
 
-Znak `_` reprezentuje mezeru. Jiná abeceda se v základním řešení nepoužívá.
+Podtržítko nahrazuje mezeru. Klíč je permutace všech 27 znaků této abecedy.
 
-## Substituční šifra
-
-Klíč je permutace celé abecedy o délce 27 znaků. Každý znak plaintextu se při šifrování nahradí znakem na stejné pozici v klíči.
-
-Dešifrování používá opačné mapování. Před použitím se kontroluje, že klíč:
-
-- má správnou délku,
-- neobsahuje opakované znaky,
-- obsahuje přesně všechny znaky projektové abecedy.
-
-Povinné funkce jsou:
+Projekt obsahuje povinné funkce ze zadání:
 
 ```python
 substitute_encrypt(plaintext, key)
 substitute_decrypt(ciphertext, key)
+get_bigrams(text)
+transition_matrix(bigrams)
+plausibility(text, TM_ref)
+prolom_substitute(text, TM_ref, iter, start_key=None)
 ```
 
-## Referenční text
+Vedle toho jsem přidal objektové rozhraní `SubstitutionCipher`, dávkové zpracování více souborů a volitelné lokální doladění klíče po skončení hlavního hledání.
 
-Jediným referenčním textem je kniha **Válka s mloky** od Karla Čapka.
+## 2. Referenční text a příprava matice
 
-Surový text se získává z českých Wikizdrojů pomocí MediaWiki API:
+Pro odhad českých bigramových četností jsem použil pouze knihu **Válka s mloky** od Karla Čapka.
 
-```text
-https://cs.wikisource.org/w/api.php
+Text se dá stáhnout skriptem:
+
+```powershell
+python scripts\download_reference_text.py
 ```
 
-Použitá stránka díla je:
-
-```text
-Válka_s_Mloky
-```
-
-Stažení zajišťuje skript:
-
-```text
-scripts/download_reference_text.py
-```
-
-Skript vyhledá části díla, načte jejich vlastní obsah, odstraní HTML značky a spojí jednotlivé části do jednoho UTF-8 souboru:
+Skript používá MediaWiki API českých Wikizdrojů a uloží surový text do:
 
 ```text
 data/reference/valka_s_mloky_raw.txt
 ```
 
-Pokud už lokální soubor existuje, bez parametru `--force` se znovu nestahuje. Aktuální surový text má přibližně 401 000 znaků, takže poskytuje dostatečně velký vzorek českého jazyka.
+Surový text má přibližně 401 tisíc znaků. Následně se vyčistí skriptem:
 
-## Příprava textu
-
-Skript:
-
-```text
-scripts/prepare_reference_text.py
+```powershell
+python scripts\prepare_reference_text.py
 ```
 
-načte surový text jako UTF-8 a převede ho do projektové abecedy.
+Při čištění se odstraní diakritika, text se převede na velká písmena a ponechají se jen znaky `A-Z_`. Vyčištěný text má přibližně 382 tisíc znaků.
 
-Při čištění se:
+Z vyčištěného textu se vytvoří všechny sousední dvojice znaků. Ty se zapíšou do matice `27 × 27`. Řádek znamená první znak bigramu a sloupec druhý znak.
 
-1. odstraní diakritika,
-2. text převede na velká písmena,
-3. mezery a další oddělovače převedou na `_`,
-4. odstraní číslice a interpunkce,
-5. ponechají pouze znaky `A-Z_`.
-
-Vyčištěný text se uloží do:
-
-```text
-data/reference/valka_s_mloky_clean.txt
-```
-
-Jeho délka je přibližně 382 000 znaků.
-
-## Bigramy
-
-Bigram je dvojice sousedních znaků. Například z textu:
-
-```text
-ABC
-```
-
-vzniknou bigramy:
-
-```text
-AB
-BC
-```
-
-Povinná funkce:
-
-```python
-get_bigrams(text)
-```
-
-vrací všechny sousední dvojice znaků v textu.
-
-## Absolutní bigramová matice
-
-Bigramy se zapisují do matice o rozměru `27 × 27`.
-
-- řádek určuje první znak bigramu,
-- sloupec určuje druhý znak bigramu,
-- hodnota buňky určuje počet výskytů dané dvojice.
-
-Povinná funkce:
-
-```python
-transition_matrix(bigrams)
-```
-
-nejprve spočítá absolutní četnosti bigramů.
-
-## Ošetření nul
-
-Některé kombinace znaků se v referenčním textu nemusí objevit. Jejich četnost by byla nulová, což by při pozdějším výpočtu logaritmu způsobilo problém.
-
-Proto se všechny nulové buňky nahradí hodnotou `1`. Jde o jednoduché vyhlazení požadované zadáním.
-
-## Relativní referenční matice
-
-Po ošetření nul se matice vydělí součtem všech buněk. Tím vznikne relativní referenční matice, jejíž hodnoty představují odhad pravděpodobností bigramů.
-
-Matice se ukládá do:
+Nulové buňky se nahradí jedničkou, aby později nevznikl problém s `log(0)`. Potom se matice vydělí součtem všech buněk a uloží se jako:
 
 ```text
 models/TM_ref.npy
 ```
 
-Finální matice má tyto vlastnosti:
+Finální matice má rozměr `(27, 27)`, součet `1.0` a neobsahuje nuly ani neplatné hodnoty.
 
-- rozměr `(27, 27)`,
-- součet hodnot `1.0`,
-- žádné nulové hodnoty,
-- žádné hodnoty `NaN`,
-- žádné nekonečné hodnoty.
+## 3. Hodnocení kandidátního textu
 
-## Věrohodnost textu
+Každý kandidátní plaintext se hodnotí funkcí `plausibility`.
 
-Funkce:
-
-```python
-plausibility(text, TM_ref)
-```
-
-ohodnotí kandidátní plaintext podle referenční matice.
-
-Nejprve vytvoří bigramy kandidátního textu a jeho pozorovanou matici pomocí:
+Z textu se nejprve vytvoří bigramová matice:
 
 ```python
 transition_matrix(get_bigrams(text))
 ```
 
-Skóre se vypočítá jako:
+Potom se spočítá součet:
 
 ```text
-součet(log(TM_ref[i, j]) × TM_obs[i, j])
+log(TM_ref[i, j]) * TM_obs[i, j]
 ```
 
-Vyšší hodnota, tedy méně záporné číslo, obvykle znamená, že text lépe odpovídá českým bigramovým četnostem.
+přes všechny buňky matice.
 
-## Metropolis-Hastingsův algoritmus
+Výsledek je záporné číslo. Vyšší hodnota, tedy méně záporné číslo, obvykle znamená, že text lépe odpovídá českému jazyku.
 
-Pro hledání klíče se používá Metropolis-Hastingsův algoritmus.
+Tento model samozřejmě nepozná význam slov. Sleduje jen dvojice sousedních znaků, takže někdy může dát vysoké skóre i textu, který není úplně správně.
 
-Postup jednoho běhu:
+## 4. Hledání klíče
 
-1. vytvoří se náhodný počáteční klíč, pokud nebyl zadaný,
-2. ciphertext se dešifruje aktuálním klíčem,
-3. spočítá se plausibility aktuálního plaintextu,
-4. v každé iteraci se v klíči prohodí dva náhodné znaky,
-5. kandidátní klíč se použije k dešifrování,
-6. spočítá se nové skóre,
-7. lepší kandidát se přijme vždy,
-8. horší kandidát se přijme s pravděpodobností `0.01`,
-9. nejlepší nalezený klíč se uchovává zvlášť.
+Klíč se hledá pomocí Metropolis-Hastingsova algoritmu.
 
-Přijetí některých horších kandidátů pomáhá algoritmu uniknout z lokálního maxima.
+Na začátku se použije náhodná permutace abecedy. V každé iteraci se prohodí dvě pozice v klíči a vzniklý kandidát se použije k dešifrování ciphertextu.
 
-Povinná funkce je:
+Lepší kandidát se přijme vždy. Horší kandidát se přijme s pravděpodobností `0.01`. Tím se hledání může dostat ven z lokálního maxima a nezůstane příliš brzy u prvního rozumného řešení.
 
-```python
-prolom_substitute(text, TM_ref, iter, start_key=None)
-```
+Během běhu se zvlášť ukládá nejlepší klíč, nejlepší plaintext a jejich skóre.
 
-Vrací:
+Po skončení hlavního běhu lze zapnout `polish_key`. Tato funkce už není náhodná. Postupně zkusí všechny dvojice znaků v klíči a přijme jen takovou výměnu, která skóre zlepší.
 
-```text
-(best_key, best_decrypted_text, best_score)
-```
+Dávkové zpracování může běžet paralelně, protože každý ciphertext je nezávislý. Paralelizují se celé soubory, ne jednotlivé iterace jednoho běhu.
 
-## Vlastní rozšíření
+## 5. Spuštění a výsledky
 
-Projekt obsahuje několik volitelných rozšíření, která nemění povinnou logiku zadání.
-
-### Lokální doladění klíče
-
-Funkce `polish_key` po skončení M-H algoritmu systematicky vyzkouší všechny možné výměny dvou pozic v klíči.
-
-Pokud některá výměna zlepší skóre, přijme se nejlepší zlepšení. Postup se opakuje, dokud se skóre zlepšuje nebo dokud se nedosáhne maximálního počtu průchodů.
-
-### Restarty
-
-Objektové API může spustit více nezávislých M-H běhů a vybrat výsledek s nejvyšší plausibility.
-
-### Paralelní zpracování
-
-Jednotlivé ciphertext soubory jsou na sobě nezávislé. Dávkový skript je proto může zpracovat více procesy současně.
-
-Paralelizují se celé soubory, ne jednotlivé iterace jednoho M-H běhu.
-
-## Povinné API
-
-Projekt zachovává požadované veřejné funkce:
-
-```python
-substitute_encrypt(plaintext, key)
-substitute_decrypt(ciphertext, key)
-get_bigrams(text)
-transition_matrix(bigrams)
-plausibility(text, TM_ref)
-prolom_substitute(text, TM_ref, iter, start_key=None)
-```
-
-Vedle nich je dostupná třída:
-
-```python
-SubstitutionCipher
-```
-
-Ta poskytuje pohodlné objektové rozhraní nad stejnou implementací.
-
-## Zpracování ciphertextů
-
-Vstupní ciphertexty jsou ve složce:
-
-```text
-data/ciphertexts/
-```
-
-Dávkové zpracování spouští:
+Nejjednodušší spuštění ve Windows je:
 
 ```powershell
-python scripts\decrypt_samples.py `
-  --matrix models\TM_ref.npy `
-  --input-directory data\ciphertexts `
-  --output-directory outputs `
-  --iterations 20000 `
-  --restarts 1 `
-  --workers 4
+.\install.bat
+.\run.bat
 ```
 
-Pro každý vstup vzniknou dva soubory:
+Finální dávkový běh používá pro každý ciphertext 20 000 iterací.
 
-```text
-text_{délka}_sample_{id}_plaintext.txt
-text_{délka}_sample_{id}_key.txt
-```
+Celkem bylo zpracováno:
 
-## Dosažené výsledky
-
-Bylo zpracováno všech 60 ciphertext souborů ze zadání.
-
-Vzniklo:
-
-- 60 plaintext souborů,
-- 60 souborů s nalezeným klíčem,
+- 60 ciphertextů,
+- 60 výstupních plaintextů,
+- 60 výstupních klíčů,
 - 0 chyb při dávkovém zpracování.
 
-Všechny exportované klíče jsou platnými permutacemi projektové abecedy a délky plaintextů odpovídají délkám uvedeným v názvech vstupních souborů.
+Pro kontrolu byl použit známý učitelský příklad `text_1000_sample_1`.
 
-Pro objektivní kontrolu byl použit známý učitelský příklad:
+Správný plaintext ani správný klíč nebyly použity během hledání. Sloužily až k vyhodnocení hotového výsledku.
+
+V uloženém finálním běhu bylo správně obnoveno:
 
 ```text
-text_1000_sample_1
+922 / 1000 znaků
 ```
 
-Známý plaintext ani učitelský klíč nebyly použity během hledání. Sloužily pouze k následnému vyhodnocení hotového slepého běhu.
+tedy:
 
-Výsledek známého příkladu:
+```text
+92,2 %
+```
 
-- správné znaky: `922 / 1000`,
-- procento shody: `92,2 %`,
-- přesná shoda celého plaintextu: ne,
-- přesná shoda celého klíče: ne.
+Celý plaintext ani celý klíč se přesně neshodovaly s učitelským řešením.
 
-Výsledek je platný, protože zadání nevyžaduje stoprocentní úspěšnost. Metropolis-Hastingsův algoritmus je náhodný a bigramový model hodnotí pouze dvojice sousedních znaků. Nejlépe hodnocený text proto nemusí být vždy přesně totožný s původním plaintextem.
-
-Kratší ciphertexty jsou obvykle obtížnější, protože obsahují méně bigramů a poskytují méně informací o vlastnostech původního jazyka.
-
-Podrobný přehled všech výstupů je uložen v:
+Podrobné výsledky jsou v:
 
 ```text
 reports/evaluation_summary.md
 reports/evaluation_summary.csv
 ```
 
-## Testování
-
-Automatické testy ověřují zejména:
-
-- povinné podpisy funkcí,
-- správné šifrování a dešifrování,
-- tvorbu bigramů,
-- vlastnosti přechodové matice,
-- vytvoření referenční matice,
-- objektové API,
-- paralelní dávkové zpracování,
-- názvy a počty výstupních souborů,
-- downloader referenčního textu bez skutečného připojení k internetu,
-- strukturu projektu,
-- platnost notebooku a dokumentace.
-
-Poslední kontrola proběhla úspěšně:
+Automatické testy skončily výsledkem:
 
 ```text
 32 passed
 ```
 
-Validace souborů zadání skončila stavem:
+a validace souborů zadání skončila stavem:
 
 ```text
 Status: OK
 ```
 
-## Omezení
+## 6. Závěr
 
-Použité řešení má několik omezení:
+Projekt splňuje hlavní části zadání: umí substituční šifrování a dešifrování, vytvoří referenční bigramovou matici, ohodnotí kandidátní plaintext a hledá klíč pomocí Metropolis-Hastingsova algoritmu.
 
-- Metropolis-Hastingsův algoritmus je náhodný, takže se výsledky jednotlivých běhů mohou lišit.
-- Kratší ciphertexty poskytují méně bigramů a hůře se vyhodnocují.
-- Bigramový model nezná význam slov ani celých vět.
-- Nejvyšší plausibility nemusí vždy odpovídat přesnému původnímu plaintextu.
-- Pokud se některý znak v ciphertextu nevyskytne, jeho část klíče nemusí být jednoznačně určitelná.
-- Více iterací nebo restartů může výsledek zlepšit, ale prodlužuje výpočet.
+Největší omezení je náhodnost hledání a jednoduchost bigramového modelu. Kratší texty obsahují méně informací a bývají výrazně těžší. Ani u delšího textu není jisté, že nejlepší nalezené skóre znamená přesně správný plaintext.
 
-## Závěr
-
-Projekt implementuje šifrování, dešifrování a kryptoanalýzu klasické monoalfabetické substituční šifry podle zadání.
-
-Referenční jazykový model vzniká pouze z knihy Válka s mloky. Text se získává z českých Wikizdrojů, převede se do projektové abecedy a následně se z něj vytvoří relativní bigramová matice `models/TM_ref.npy`.
-
-Kryptoanalýza používá Metropolis-Hastingsův algoritmus s výměnou dvou náhodných znaků a pravděpodobností `0.01` pro přijetí horšího kandidáta.
-
-Bylo úspěšně zpracováno všech 60 ciphertextů a pro každý vznikl plaintext i nalezený klíč. U známého učitelského příkladu bylo správně obnoveno 922 z 1000 znaků, tedy 92,2 % textu.
-
-Výsledky ukazují, že jednoduchý bigramový model dokáže substituční šifru prolomit s vysokou úspěšností, ale kvůli náhodnosti hledání a omezením bigramového modelu není při každém běhu zaručeno přesné obnovení celého plaintextu a klíče.
+Výsledek 92,2 % na známém příkladu ukazuje, že metoda funguje, ale není stoprocentně spolehlivá. Lepší výsledek by mohl přinést vyšší počet restartů nebo složitější jazykový model, například trigramy. V tomto projektu jsem ale zachoval hlavní logiku zadanou v úloze.
